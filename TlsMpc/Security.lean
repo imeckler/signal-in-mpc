@@ -93,6 +93,12 @@ import TlsMpc.Node.Flows.ContactsTable
 import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Flows.MasksRun
+import TlsMpc.Node.Flows.ConvertRun
+import TlsMpc.Node.Flows.ConvertWF
+import TlsMpc.Node.Flows.MasksWF
+import TlsMpc.Node.Flows.MasksModel
+import TlsMpc.Node.Flows.MasksHonest
+import TlsMpc.Node.Flows.MasksHides
 import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Flows.TlsProofs
 import TlsMpc.Node.Flows.SendProofs
@@ -5787,6 +5793,289 @@ theorem s10_quotient_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 slot : Nat) 
     WF sigs c (Inversion.quotientScript f0 slot x z) :=
   Inversion.quotient_wf sigs c f0 slot x z hp hx hz hfx hfz hfresh
 
+/-! #### 7b (continued). P-CUT at the level of whole runs of `Masks.generate` (S10 follow-up)
+
+`Run.Agree o o'` (`Flows/RunAgree.lean`): two runs with the same views of BOTH parties, the same
+trace, replies and result. `Masks.HonestStore p s σ r`: the honest party's store holds the
+candidates `r` (canonical), as bits, elements and coins, and 32-byte challenge randomness.
+`Masks.Holds p b f I v x`: the engines hold the candidates `x`. -/
+
+/-- **P-CUT (c), composed with the model** [M; hyp: `WordLoaded`, `ProgsLoaded`]: against any
+adversary, two runs of `generate` whose honest stores hold candidates `r`, `r'` (same challenge
+randomness) agree, when for the challenges the first run reaches `r' = r` on the cut, every
+bucket pair has the same sum mod p, and each bit block's reference is at least 32 in both or in
+neither. -/
+theorem s10_pcut_c_agree (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E)
+    (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots) (σ σ' : Store) (I : Ideal) (vD : List Release)
+    (r r' : Nat → Nat) (hσ : Masks.HonestStore p s σ r) (hσ' : Masks.HonestStore p s σ' r')
+    (hbytes : σ'.bytes = σ.bytes)
+    (hcut : ∀ π₁, (withAdv E me adv (Masks.cutChallenge p b f E.hash me s) σ I vD).result = some π₁ →
+      ∀ c ∈ Masks.cutOf p π₁, r' c = r c)
+    (hbk : ∀ π₁ π₂, (withAdv E me adv (Masks.bucketChallenge p b f E.hash me s) σ I vD).result = some (π₁, π₂) →
+      (∀ e ∈ Masks.pairs p, (r' (Masks.member p π₁ π₂ e.2.1 0) + r' (Masks.member p π₁ π₂ e.2.1 e.2.2)) % Conv.P =
+        (r (Masks.member p π₁ π₂ e.2.1 0) + r (Masks.member p π₁ π₂ e.2.1 e.2.2)) % Conv.P) ∧
+      (∀ j, j < p.bits → (32 ≤ r' (Masks.refOf p π₁ π₂ j) ↔ 32 ≤ r (Masks.refOf p π₁ π₂ j)))) :
+    Run.Agree (fun _ _ _ _ _ => True) (withAdv E me adv (Masks.generate p b f E.hash me s) σ I vD)
+      (withAdv E me adv (Masks.generate p b f E.hash me s) σ' I vD) :=
+  Masks.generate_agree E me adv p b f hh hW hP hM hbits s σ σ' I vD r r' hσ hσ' hbytes hcut hbk
+
+/-- **P-CUT (c) in plan 7.0's form: `generate_hides`** [M; hyp: `WordLoaded`, `ProgsLoaded`]:
+against any adversary, the adversary's view of a run of `generate` with honest candidates `r`,
+together with the honest kept references moved by `δ` (`Masks.moveRef`), equals its view of the run
+with the re-randomised candidates `reRand π δ r` together with their kept references; π are the
+challenges of r's run. The form `proofs/` `hiding_of_bijection` consumes (view := `hideView`,
+s := δ, s′ := 0, σ := `reRand π δ`; bijection: `s10_reRand_bijection`). -/
+theorem s10_generate_hides (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E)
+    (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots)
+    (hslots : s.elems < s.coins ∨ s.coins + p.M ≤ s.elems) (σ : Store) (h32 : Masks.Bytes32 s σ) (I : Ideal)
+    (vD : List Release) (δ : Nat → Nat) (r : Nat → Nat) (hr : ∀ c, c < p.M → r c < Conv.P) :
+    Masks.hideView E me adv p b f s σ I vD δ r =
+      Masks.hideView E me adv p b f s σ I vD (fun _ => 0)
+        (Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r) :=
+  Masks.generate_hides E me adv p b f hh hW hP hM hbits s hslots σ h32 I vD δ r hr
+
+/-- **The re-randomisation is a bijection of the canonical candidate vectors** [M]: it yields
+canonical values, and `reRand (negShift δ)`, for the challenges of the re-randomised run, undoes
+it. -/
+theorem s10_reRand_bijection (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E)
+    (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots)
+    (hslots : s.elems < s.coins ∨ s.coins + p.M ≤ s.elems) (σ : Store) (h32 : Masks.Bytes32 s σ) (I : Ideal)
+    (vD : List Release) (δ : Nat → Nat) (r : Nat → Nat) (hr : ∀ c, c < p.M → r c < Conv.P) :
+    (∀ c, c < p.M →
+      Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r c < Conv.P) ∧
+    (∀ c, c < p.M →
+      Masks.reRand p (Masks.permsOf E me adv p b f s
+          (Masks.setCands p s σ (Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r))
+          I vD) (Masks.negShift p δ)
+        (Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r) c = r c) :=
+  ⟨fun c hc => Masks.reRand_lt _ δ r c (hr c hc),
+    fun c hc => Masks.reRand_inverse E me adv p b f hh hW hP hM hbits s hslots σ h32 I vD δ r hr c hc⟩
+
+/-- **`moveRef`, the move of a kept reference** [K]: canonical, undone by `negAmt`, and for a bit
+block it keeps "at least 32" (the bit-block flag under a shift). -/
+theorem s10_moveRef (b : Bool) (δ v : Nat) (hv : v < Conv.P) :
+    Masks.moveRef b δ v < Conv.P ∧ Masks.moveRef b (Masks.negAmt b δ) (Masks.moveRef b δ v) = v ∧
+      Masks.moveRef b (Masks.negAmt b (Masks.negAmt b δ)) v = Masks.moveRef b δ v ∧
+      (32 ≤ Masks.moveRef true δ v ↔ 32 ≤ v) :=
+  ⟨Masks.moveRef_lt b δ v hv, Masks.moveRef_neg b δ v hv, Masks.moveRef_negneg b δ v, Masks.moveRef_32 δ v⟩
+
+/-- **Any target reference is reached** [K]: any canonical value for a word mask; any value in
+[32, p) for a bit block. -/
+theorem s10_moveRef_reach (v t : Nat) (hv : v < Conv.P) (ht : t < Conv.P) :
+    Masks.moveRef false ((t + (Conv.P - v)) % Conv.P) v = t ∧
+      (32 ≤ v → 32 ≤ t → Masks.moveRef true ((t - 32 + (Conv.P - 32 - (v - 32))) % (Conv.P - 32)) v = t) :=
+  ⟨Masks.moveRef_reach_word v t hv ht, fun h1 h2 => Masks.moveRef_reach_bits v t hv h1 ht h2⟩
+
+/-- **P-CUT (f), (g), run level** [M; hyp: `WordLoaded`, `ProgsLoaded`, `FieldInverse`]: against any
+adversary, if `finishPhase` returns a pool from a state holding the candidates `x`, every kept
+reference of both owners is canonical (at least 32 for bit blocks), the pool is
+`maskList`/`pairList`, each word mask's handles hold `modAdd` of the references' words and the sum
+of their elements, and each bit pair of a bit block whose references have error 0 holds the XOR of
+the references' bits in both engines. -/
+theorem s10_pcut_fg_run (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E) (s : Masks.Slots)
+    (π₁ π₂ : List Nat) (σ : Store) (I : Ideal) (vD : List Release) (v : Bits) (x : Masks.Vals)
+    (pool : Conv.MaskPool) (h : Masks.Holds p b f I v x) (hπ₁ : ∀ c ∈ π₁, c < p.M) (hM : 0 < p.M)
+    (hbits : p.bits ≤ p.N)
+    (hres : (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).result = some pool) :
+    pool = ⟨Masks.maskList p b f, Masks.pairList p b f⟩ ∧
+    (∀ j, j < p.N → x.val 0 (Masks.refOf p π₁ π₂ j) < Conv.P ∧ x.val 1 (Masks.refOf p π₁ π₂ j) < Conv.P ∧
+      (j < p.bits → 32 ≤ x.val 0 (Masks.refOf p π₁ π₂ j) ∧ 32 ≤ x.val 1 (Masks.refOf p π₁ π₂ j))) ∧
+    (∀ j, j < p.words →
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.bools (b + 12 + j) =
+        some (Conv.word (Conv.addModSpec (x.val 0 (Masks.refOf p π₁ π₂ (p.bits + j)))
+          (x.val 1 (Masks.refOf p π₁ π₂ (p.bits + j))))) ∧
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.fields (Masks.maskBase p f + j) =
+        some (x.elem 0 (Masks.refOf p π₁ π₂ (p.bits + j)) + x.elem 1 (Masks.refOf p π₁ π₂ (p.bits + j)))) ∧
+    (∀ j, j < p.bits → x.err 0 (Masks.refOf p π₁ π₂ j) = 0 → x.err 1 (Masks.refOf p π₁ π₂ j) = 0 →
+      ∀ i, i < Masks.W →
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.bools (Masks.bitBase p b + j * Masks.W + i) =
+        some [(x.bits 0 (Masks.refOf p π₁ π₂ j)).getD i false ^^ (x.bits 1 (Masks.refOf p π₁ π₂ j)).getD i false] ∧
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.fields
+          (Masks.xorH p f (j * Masks.W + i)).id =
+        some (TlsMpc.X25519.bitValue
+          ((x.bits 0 (Masks.refOf p π₁ π₂ j)).getD i false ^^ (x.bits 1 (Masks.refOf p π₁ π₂ j)).getD i false))) :=
+  Masks.finishPhase_sound E me adv p b f hinv hW hP s π₁ π₂ σ I vD v x pool h hπ₁ hM hbits hres
+
+/-- **A mask from two error-free canonical references is consistent** [K]: val(w) = f =
+(val_A + val_B) mod p. -/
+theorem s10_mask_consistent (x : Masks.Vals) (cA cB : Nat) (hA : x.val 0 cA < Conv.P) (hB : x.val 1 cB < Conv.P)
+    (eA : x.err 0 cA = 0) (eB : x.err 1 cB = 0) :
+    Conv.natOf (Conv.word (Conv.addModSpec (x.val 0 cA) (x.val 1 cB))) = (x.elem 0 cA + x.elem 1 cB).val ∧
+      (x.elem 0 cA + x.elem 1 cB).val = (x.val 0 cA + x.val 1 cB) % Conv.P :=
+  Masks.mask_consistent x cA cB hA hB eA eB
+
+/-- **P-CUT (a) for a whole honest run, deployed profiles** [M; hyp: `WordLoaded`, `ProgsLoaded`]:
+two honest parties running `generate` for `profile N bits` both return the pool, keep their stores,
+and every word mask is a Boolean word and a field element of the same value `(rA c + rB c) mod p`,
+every bit pair the XOR of the references' bits in both engines. [hyp: the challenges' commitments
+differ, their expansions succeed, the bit blocks' references are at least 32.] -/
+theorem s10_pcut_a_run (E : Env) (p : Masks.Params) (b f : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E) (N nbits : Nat) (hprof : Masks.profile N nbits = some p)
+    (sA sB : Masks.Slots) (σA σB : Store) (I : Ideal) (rA rB : Nat → Nat)
+    (hA : Masks.HonestStore p sA σA rA) (hB : Masks.HonestStore p sB σB rB)
+    (hc1 : E.hash (commitFrame Random.tag .a (σA.bytes sA.cutNonce) (σA.bytes sA.cutValue)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes sB.cutNonce) (σB.bytes sB.cutValue)))
+    (hc2 : E.hash (commitFrame Random.tag .a (σA.bytes sA.bucketNonce) (σA.bytes sA.bucketValue)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes sB.bucketNonce) (σB.bytes sB.bucketValue)))
+    (π₁ π₂ : List Nat)
+    (hπ₁ : Random.permOf E.hash (Masks.domain p "cut")
+      (Random.xorBytes (σA.bytes sA.cutValue) (σB.bytes sB.cutValue)) p.M = some π₁)
+    (hπ₂ : Random.permOf E.hash (Masks.domain p "bucket")
+      (Random.xorBytes (σA.bytes sA.bucketValue) (σB.bytes sB.bucketValue)) p.K = some π₂)
+    (h32 : ∀ j, j < p.bits → 32 ≤ rA (Masks.refOf p π₁ π₂ j) ∧ 32 ≤ rB (Masks.refOf p π₁ π₂ j)) :
+    ∃ J, Run.JRet (jointRun E (Masks.generate p b f E.hash .a sA) (Masks.generate p b f E.hash .b sB) σA σB I)
+        ⟨Masks.maskList p b f, Masks.pairList p b f⟩ ⟨Masks.maskList p b f, Masks.pairList p b f⟩ J σA σB ∧
+      (∀ j, j < p.words →
+        J.bools (b + 12 + j) = some (Conv.word
+          ((rA (Masks.refOf p π₁ π₂ (p.bits + j)) + rB (Masks.refOf p π₁ π₂ (p.bits + j))) % Conv.P)) ∧
+        J.fields (Masks.maskBase p f + j) = some (TlsMpc.FieldDag.ofNat
+          ((rA (Masks.refOf p π₁ π₂ (p.bits + j)) + rB (Masks.refOf p π₁ π₂ (p.bits + j))) % Conv.P))) ∧
+      (∀ j, j < p.bits → ∀ i, i < Masks.W →
+        J.bools (Masks.bitBase p b + j * Masks.W + i) =
+          some [(Conv.word (rA (Masks.refOf p π₁ π₂ j))).getD i false ^^
+            (Conv.word (rB (Masks.refOf p π₁ π₂ j))).getD i false] ∧
+        J.fields (Masks.xorH p f (j * Masks.W + i)).id = some (TlsMpc.X25519.bitValue
+          ((Conv.word (rA (Masks.refOf p π₁ π₂ j))).getD i false ^^
+            (Conv.word (rB (Masks.refOf p π₁ π₂ j))).getD i false))) :=
+  Masks.generate_honest_profile E p b f hh hW hP N nbits hprof sA sB σA σB I rA rB hA hB hc1 hc2 π₁ π₂ hπ₁ hπ₂ h32
+
+/-- **`generate` is well formed** [K]: from a context where the Boolean ids from `b` and the field
+ids from `f` were never defined, with the circuits' and programs' signatures and the widths within
+the shell's limit (`Sizes`; `Masks.profile_sizes`: every deployed profile), the shell's `check`
+accepts every instruction on every branch. -/
+theorem s10_generate_wf (sigs : Bytes → Option Sig) (ws : Masks.WordSigs sigs) (p : Masks.Params)
+    (sz : Masks.Sizes p) (b f : Nat) (hash : Bytes → Bytes) (me : Party) (s : Masks.Slots) (c : Ctx)
+    (hfb : Contacts.Fresh c b) (hff : ∀ j, f ≤ j → j ∉ c.seenF) (hp : Masks.ProgSigs c) :
+    WF sigs c (Masks.generate p b f hash me s) :=
+  Masks.generate_wf sigs ws p sz b f hash me s c hfb hff hp
+
+/-- **The deployed profiles are within the shell's limits** [K]. -/
+theorem s10_profile_sizes (N bits : Nat) (p : Masks.Params) (h : Masks.profile N bits = some p) : Masks.Sizes p :=
+  Masks.profile_sizes N bits p h
+
+/-- **`sharedBits` is well formed** [K]. -/
+theorem s10_sharedBits_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 n slot : Nat) (hn : 0 < n)
+    (hw : 2 * n ≤ maxWidth) (hfresh : ∀ j, f0 ≤ j → j < f0 + 5 * n → j ∉ c.seenF)
+    (hp1 : c.progs Conv.bitCheckName = some ⟨1, 0, [.pub]⟩) (hp2 : c.progs Conv.bitXorName = some ⟨2, 0, [.never]⟩) :
+    WF sigs c (Convert.sharedBits f0 n slot) :=
+  Convert.sharedBits_wf sigs c f0 n slot hn hw hfresh hp1 hp2
+
+/-- **The counting model's hypotheses, for any run of `generate` that returns** [M; hyp:
+`WordLoaded`, `ProgsLoaded`, `FieldInverse`] (`Flows/MasksModel.lean`): the other party's candidates
+are its choice from its view BEFORE the run (so the bad set is fixed before the challenges); every
+cut candidate of both owners is canonical with error 0 (d); every bucket pair passes `bucketOk` (e);
+every kept reference is canonical, at least 32 for a bit block (f); the pool is
+`maskList`/`pairList`. (The masks' values in the final state: `Masks.generate_sound`'s last two
+conjuncts, not restated; with `s10_mask_consistent`.) -/
+theorem s10_generate_sound (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E)
+    (hP : Conv.ProgsLoaded E) (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots) (σ : Store) (I : Ideal)
+    (vD : List Release) (r : Nat → Nat) (hσ : Masks.HonestStore p s σ r) (pool : Conv.MaskPool)
+    (hres : (withAdv E me adv (Masks.generate p b f E.hash me s) σ I vD).result = some pool) :
+    ∃ (pb pe : PeerPart) (π₁ π₂ : List Nat),
+      adv.act vD (.boolInputBoth ⟨b⟩ ⟨b + 1⟩ (p.M * Masks.W) false true ()) = some pb ∧
+      adv.act vD (.fieldInput ((List.range p.M).map (Masks.fOf p f 0)) ((List.range p.M).map (Masks.fOf p f 1))
+        .elements true ()) = some pe ∧
+      Masks.Perms p π₁ π₂ ∧
+      (∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁,
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val o c < Conv.P ∧
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).err o c = 0) ∧
+      (∀ e ∈ Masks.pairs p, Masks.bucketOk
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val e.1
+          (Masks.member p π₁ π₂ e.2.1 0))
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val e.1
+          (Masks.member p π₁ π₂ e.2.1 e.2.2))
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).elem e.1
+          (Masks.member p π₁ π₂ e.2.1 0))
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).elem e.1
+          (Masks.member p π₁ π₂ e.2.1 e.2.2)) = true) ∧
+      (∀ j, j < p.N →
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 0 (Masks.refOf p π₁ π₂ j) <
+          Conv.P ∧
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 1 (Masks.refOf p π₁ π₂ j) <
+          Conv.P ∧
+        (j < p.bits →
+          32 ≤ (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 0
+            (Masks.refOf p π₁ π₂ j) ∧
+          32 ≤ (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 1
+            (Masks.refOf p π₁ π₂ j))) ∧
+      pool = ⟨Masks.maskList p b f, Masks.pairList p b f⟩ := by
+  obtain ⟨pb, pe, π₁, π₂, h1, h2, h3, h4, h5, h6, h7, -, -⟩ :=
+    Masks.generate_sound E me adv p b f hinv hh hW hP hM hbits s σ I vD r hσ pool hres
+  exact ⟨pb, pe, π₁, π₂, h1, h2, h3, h4, h5, h6, h7⟩
+
+/-- **The model's rule in its own words** [K]: when every bucket pair passes and the reference is
+canonical, a bucket member is good exactly when its reference is: no mixed bucket survives. -/
+theorem s10_bucket_uniform (x : Masks.Vals) (hw : x.Wide) (p : Masks.Params) (π₁ π₂ : List Nat)
+    (he : ∀ e ∈ Masks.pairs p, Masks.bucketOk (x.val e.1 (Masks.member p π₁ π₂ e.2.1 0))
+      (x.val e.1 (Masks.member p π₁ π₂ e.2.1 e.2.2)) (x.elem e.1 (Masks.member p π₁ π₂ e.2.1 0))
+      (x.elem e.1 (Masks.member p π₁ π₂ e.2.1 e.2.2)) = true)
+    (e : Nat × Nat × Nat) (hmem : e ∈ Masks.pairs p) (hc : x.val e.1 (Masks.member p π₁ π₂ e.2.1 0) < Conv.P) :
+    x.err e.1 (Masks.member p π₁ π₂ e.2.1 0) = 0 ↔ x.err e.1 (Masks.member p π₁ π₂ e.2.1 e.2.2) = 0 :=
+  Masks.bucket_uniform x hw p π₁ π₂ he e hmem hc
+
+/-- **The two challenge permutations as the model's one arrangement** [K]: `arrangement π₁ π₂`
+(the cut, then the bucket slots in order) is a permutation of the candidates [0, M); its first K
+entries are the cut; its entry K + B·j + k is member k of bucket j. (That it is uniform for uniform
+π₁, π₂ is argued, not proved: section 8.) -/
+theorem s10_arrangement (p : Masks.Params) (π₁ π₂ : List Nat) (h1 : π₁.Perm (List.range p.M))
+    (h2 : π₂.Perm (List.range p.K)) :
+    (Masks.arrangement p π₁ π₂).Perm (List.range p.M) ∧
+      (Masks.arrangement p π₁ π₂).take p.K = Masks.cutOf p π₁ ∧
+      ∀ j k, p.B * j + k < π₂.length →
+        (Masks.arrangement p π₁ π₂).getD (p.K + (p.B * j + k)) 0 = Masks.member p π₁ π₂ j k :=
+  ⟨Masks.arrangement_perm p π₁ π₂ h1 h2,
+    Masks.arrangement_cut p π₁ π₂ (by rw [h1.length_eq, List.length_range]),
+    fun j k h => Masks.arrangement_slot p π₁ π₂ (by rw [h1.length_eq, List.length_range]) j k h⟩
+
+/-- **P-BITS (a), (b) at run level, against any adversary** [M; hyp: `ProgsLoaded`, `FieldInverse`]:
+if `sharedBits` returns, it returns `bitsOuts`; every input of BOTH parties in the engines is 0 or 1;
+and output `i` holds the field XOR of the two parties' inputs `i`. -/
+theorem s10_pbits_run (E : Env) (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hP : Conv.ProgsLoaded E) (me : Party)
+    (adv : Adversary) (f0 n slot : Nat) (σ : Store) (I : Ideal) (vD : List Release) (outs : List FieldH)
+    (hres : (withAdv E me adv (Convert.sharedBits f0 n slot) σ I vD).result = some outs) :
+    outs = Convert.bitsOuts f0 n ∧ ∃ pe : List F, pe.length = n ∧ (σ.elems slot).length = n ∧
+      (∀ c ∈ σ.elems slot ++ pe, c = 0 ∨ c = TlsMpc.FieldDag.ofNat 1) ∧
+      ∀ i, i < n → (withAdv E me adv (Convert.sharedBits f0 n slot) σ I vD).ideal.fields (f0 + 4 * n + i) =
+        some (Conv.bitXorValue ((if me = .a then σ.elems slot else pe).getD i 0)
+          ((if me = .a then pe else σ.elems slot).getD i 0)) :=
+  Convert.sharedBits_sound E hinv hP me adv f0 n slot σ I vD outs hres
+
+/-- **P-BITS (b), two honest parties** [M; hyp: `ProgsLoaded`]: with local bits `as`, `bs` as 0/1
+coins, both return `bitsOuts`, keep their stores, and output `i` holds the field bit of
+`as_i ⊕ bs_i`. -/
+theorem s10_pbits_honest (E : Env) (hP : Conv.ProgsLoaded E) (f0 n slotA slotB : Nat) (σA σB : Store)
+    (I : Ideal) (as bs : Bits) (hla : as.length = n) (hlb : bs.length = n)
+    (hA : σA.elems slotA = as.map TlsMpc.X25519.bitValue) (hB : σB.elems slotB = bs.map TlsMpc.X25519.bitValue) :
+    ∃ J, Run.JRet (jointRun E (Convert.sharedBits f0 n slotA) (Convert.sharedBits f0 n slotB) σA σB I)
+        (Convert.bitsOuts f0 n) (Convert.bitsOuts f0 n) J σA σB ∧
+      ∀ i, i < n → J.fields (f0 + 4 * n + i) =
+        some (TlsMpc.X25519.bitValue (as.getD i false ^^ bs.getD i false)) :=
+  Convert.sharedBits_honest E hP f0 n slotA slotB σA σB I as bs hla hlb hA hB
+
+/-- **P-B2F (a) through `jointRun`, the whole bundle** [M; hyp: `WordLoaded`]: two honest parties
+convert the bits `xb` behind `x` with consistent pairs (pair `i`: the Boolean bit `ρ_i` and the field
+bit of `ρ_i`, on handles other than the script's own): both return `b2fOuts`, keep their stores, and
+output `i` holds the field bit of `xb_i`. -/
+theorem s10_pb2f_honest (E : Env) (hW : Conv.WordLoaded E) (n0 f0 : Nat) (x : BoolH) (ps : List Conv.BitPair)
+    (σA σB : Store) (I : Ideal) (xb ρ : Bits) (hx : I.bools x.id = some xb) (hxl : xb.length = ps.length)
+    (hρl : ρ.length = ps.length)
+    (hbits : (ps.map (·.bit)).mapM (fun h => I.bools h.id) = some (ρ.map fun r => [r]))
+    (hflds : ∀ i, i < ps.length →
+      I.fields (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id = some (TlsMpc.X25519.bitValue (ρ.getD i false)))
+    (hx0 : x.id ≠ n0)
+    (hfid : ∀ i, i < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 ∧
+      (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 1 ∧
+      ∀ j, j < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 2 + j) :
+    ∃ J, Run.JRet (jointRun E (Convert.bitsToField n0 f0 x ps) (Convert.bitsToField n0 f0 x ps) σA σB I)
+        (Convert.b2fOuts f0 ps.length) (Convert.b2fOuts f0 ps.length) J σA σB ∧
+      ∀ i, i < ps.length → J.fields (f0 + 2 + i) = some (TlsMpc.X25519.bitValue (xb.getD i false)) :=
+  Convert.b2f_honest E hW n0 f0 x ps σA σB I xb ρ hx hxl hρl hbits hflds hx0 hfid
+
 end FlowsS10
 
 /-! ### 7c. GHASH key-power shares and TLS (stage S12; plan 7.1 P-GHASH, 8.1 T3/T4-TLS)
@@ -6309,18 +6598,31 @@ the matching section above in the same commit.
   reference); (d) protocol and run level (`cutPhase_sound`); (e) protocol level exactly (pass ⟺
   val(ref) + val(member) < 2p and the errors cancel, for a canonical reference), the counting
   model's mixed-bucket rule, and the run level (`bucketPhase_sound`); (f) the flags' meaning; (g)
-  `bitBlock_unique` with `FieldInverse`; (h) the pool and the frees. OPEN: (a) for a whole honest
-  `generate` run in the model (checked executably for the test parameters: the vectors'
-  `check mask … ok`); (b) a value-level disclosure for the bucket, flag and bit-block phases and
-  the whole run; (c) the composition with the model (the adversary's whole view of `generate` as a
-  function of these releases and the challenges), and the bit-block flags (the ≥ 32 condition of
-  the shifted reference); (f), (g) at run level; a WF theorem for `generate` (every batch of the
-  test instance is admitted: the vectors' `verdict ok`). → **S10 follow-up**.
+  `bitBlock_unique` with `FieldInverse`; (h) the pool and the frees. Proved since (section 7b
+  continued, S10 follow-up): (a) for a whole honest run through `jointRun`, every parameter set
+  with 0 < M and bits ≤ N, so the deployed profiles (`s10_pcut_a_run`); (c) composed with the model:
+  two runs against the same adversary agree under the bucket-cancelling change of the honest
+  candidates (`s10_pcut_c_agree`), plan 7.0's form `s10_generate_hides` with the re-randomisation a
+  bijection (`s10_reRand_bijection`), the bit-block flag under the move (`s10_moveRef`: a bit block's
+  reference is moved inside [32, p)); (f), (g) at run level (`s10_pcut_fg_run`,
+  `s10_mask_consistent`); a WF theorem for `generate` (`s10_generate_wf`, `s10_profile_sizes`); the
+  counting model's hypotheses for any run that returns (`s10_generate_sound`, `s10_bucket_uniform`)
+  and the two challenge permutations as one arrangement (`s10_arrangement`). OPEN: (b) a value-level
+  disclosure of the whole run as ONE prefix statement (the releases are characterised phase by
+  phase inside `s10_pcut_c_agree`'s proof: `Twin.cut_same`, `bucket_same`, `flags_same`,
+  `bitZ_same`); the PROBABILITY part of the correspondence with `proofs/` `CutAndChoose`: that the
+  arrangement is uniform when the two permutations are (a K!-to-one counting fact), and that the
+  permutations are uniform and independent of the bad set (`IdealCommit` for the seeds, SHA-256 as
+  a random oracle in `permOf`); what `generate_hides` does not say: it is about the honest party's
+  candidates for FIXED challenge randomness, and a bit block's reference below 32 (probability
+  32/p) is revealed by the abort of its own run.
 * **P-PAIR / P-B2F**, **P-W2F**, **P-F2W**: (a), (b), T3, (c) proved (section 7b; W2F and F2W (a)
-  through `jointRun`, B2F (a) per bit). Open: B2F (a) through `jointRun` for the whole bundle; WF
-  theorems for the conversion scripts.
+  through `jointRun`; B2F (a) per bit and, for the whole bundle through `jointRun`,
+  `s10_pb2f_honest`). Open: WF theorems for `wordToField`, `fieldToWord`, `bitsToField`, `Account.openStep` (`sharedBits`:
+  `s10_sharedBits_wf`).
 * **P-BITS**: (a) with `FieldInverse` (the converse of `fieldBits_bitCheck_bit`), (b), (c) at the
-  protocol level. Open: the run-level statement through the program instructions.
+  protocol level; at run level `s10_pbits_run` (any adversary: every input of both parties is a bit
+  and the outputs are the field XORs) and `s10_pbits_honest` (`jointRun`).
 * **P-INV** (masked inversion `D`/`Z` nodes), **P-FIELDPROG** (what a program releases). → **S9**,
   **S11**.
 * **P-GHASH**: (a) for the doubling schedule (`s12_ghash_shared_extend`, the kernels' resharing
@@ -6418,7 +6720,10 @@ changes the following items:
     `canonicalRange` (ReceiveFirst's import closure is not compiled into proofs/).
   - Cut-and-choose, for the model: `cut_and_bucket_probability`, `cut_bound_le_bound_one`,
     `*_bound_all_t`, `*_undetected_lt` (every bad set < 2⁻¹²⁸ for 2¹⁹/8, 256/14, 512/13,
-    1024/12). P-CUT(d)–(f), i.e. that the C++ generators implement the model, remain (S10).
+    1024/12). The model's hypotheses are theorems about the Lean script `Masks.generate` since S10
+    (`s10_generate_sound`: bad set fixed before the challenges, (d), (e), (f); `s10_arrangement`:
+    the two challenge permutations are one arrangement of the model's shape); that this
+    arrangement is uniform, and the legacy C++ generators, are not covered.
   - H-GROUP (section 7): the group law, the main-package formulas in it, base point of order
     exactly ℓ, the offset and masked-point theorems instantiated
     (`curve_deployed_key_close_uniform`, `base_deployed_key_close_uniform`,
@@ -6913,6 +7218,23 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s12_tls_openHandshake_value
 #print axioms TlsMpc.Security.s12_tls_window_bound
 #print axioms TlsMpc.Security.s12_tls_sealCtr_wf
+#print axioms TlsMpc.Security.s10_pb2f_honest
+#print axioms TlsMpc.Security.s10_pbits_run
+#print axioms TlsMpc.Security.s10_pbits_honest
+#print axioms TlsMpc.Security.s10_pcut_c_agree
+#print axioms TlsMpc.Security.s10_generate_hides
+#print axioms TlsMpc.Security.s10_reRand_bijection
+#print axioms TlsMpc.Security.s10_moveRef
+#print axioms TlsMpc.Security.s10_moveRef_reach
+#print axioms TlsMpc.Security.s10_pcut_fg_run
+#print axioms TlsMpc.Security.s10_mask_consistent
+#print axioms TlsMpc.Security.s10_pcut_a_run
+#print axioms TlsMpc.Security.s10_generate_wf
+#print axioms TlsMpc.Security.s10_profile_sizes
+#print axioms TlsMpc.Security.s10_sharedBits_wf
+#print axioms TlsMpc.Security.s10_generate_sound
+#print axioms TlsMpc.Security.s10_bucket_uniform
+#print axioms TlsMpc.Security.s10_arrangement
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
