@@ -523,14 +523,18 @@ def run_ceremony(mode, texts):
             subprocess.run(['bash', str(mp / 'Scripts/setup-ssl.sh'), '2'], cwd=directory / f'worker-{kind}', stdout=subprocess.DEVNULL,
                            stderr=subprocess.STDOUT, check=True)
         nodes = [directory / f'node-{party}' / 'ceremony' for party in range(2)]
+        # Script flows (SIGNAL_SCRIPTS, e.g. with `ceremony`) need the production worker with a
+        # manifest (STACK_NOTES J24 (b)); the ceremony kernels are in the local set's manifest since
+        # PROOF_GAPS K8. Without scripts the ceremony stays non-strict, as before.
+        scripted = bool(os.environ.get('SIGNAL_SCRIPTS')) and bool(os.environ.get('CIRCUIT_MANIFEST'))
         for party in range(2):
             nodes[party].mkdir(parents=True)
             config = dict(
                 party=party, state_directory=str(directory / f'node-{party}'), controller=str(controller),
-                worker=dict(binary=str(worker_binary(mode, strict=False)),
+                worker=dict(binary=str(worker_binary(mode, strict=scripted)),
                             send_directory=str(directory / 'worker-send'), receive_directory=str(directory / 'worker-receive'),
                             hosts=['127.0.0.1', '127.0.0.1'], port_base=23400),
-                circuits=dict(tool=str(CACHE), manifest=None),
+                circuits=dict(tool=str(CACHE), manifest=os.environ.get('CIRCUIT_MANIFEST') if scripted else None),
                 signal=dict(endpoint='127.0.0.1', port=18443, hostname='server.example', trust_root=str(STATE / 'tls' / 'ca.pem'),
                             certificate_checker=str(directory / 'public_auth')),
                 database=dict(client=str(cluster.BIN / 'handoff_client'), network=str(cluster.network),

@@ -1737,6 +1737,17 @@ upgrade on the real engines but cannot be selected without the contact set (J22)
 stops at the legacy op 44 (J23) and is blocked by J21. Only `random` is selectable for real; the
 default stays all-legacy.
 
+**Status 2026-11-13, later (main line; STACK_NOTES.md section 10).** J21 (receive width: one
+definition, proved to be the kernel's), J22 (the selection refuses a `tls` selection that strands a
+legacy operation: closure check with the session kind, `Select.check_closed`), J23 (op 44 as a
+script), and two run defects (J25 manifest names, J26 operations check) fixed; S16
+(`s16-remaining`, the ceremony as scripts) merged, its group's needs now derived from the closure
+(K12). With all ten groups (`closedSet`) every harness stage run passes on the real engines with
+`--strict-produced` (malicious and semi-honest signup, db, compact three-device signup, recovery
+devices, sustained in both modes) with records equal to golden / the legacy run; the ceremony stage
+passes with `ceremony` added (all eleven). Per message the scripts cost 18 % (malicious) and 62 %
+(semi-honest) more in-session time (PERFORMANCE.md). The default stays all-legacy.
+
 ---
 
 **S10. Conversions, masks, inversion.**

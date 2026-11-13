@@ -517,6 +517,43 @@ V3 field-program re-export: 68 s, 0.97 GB (alone). Real-engine fixtures (malicio
 425 s (seven flows, each on fresh workers), `e2e_s11.py` 565 s (nine flows), `e2e_s12.py` 61 s,
 `e2e_s13.py` 127 s (3.65 GB peak), `e2e_s15.py` 61 s; each under 1 GB except S13.
 
+### The closed selection: every session flow as Lean scripts (2026-11-13, after J21-J26)
+
+`SIGNAL_SCRIPTS=contacts,account,curve,send,receive,refresh,tls,masks,random,upgrade` (all ten
+groups; the smallest selection with `tls` the selection accepts, STACK_NOTES section 10),
+`--strict-produced`, this machine, one run each. Every stage below passes, and where there is a
+golden its records equal it (compare_records: same modulo masks).
+
+Sustained stage (`--runs 0 --sustained 16 --restart-after 8`), both sides strict, run back to back:
+
+| mode | selection | wall s | in-session s | messages/s in session | s per message in session | AND gates per message |
+|---|---|---|---|---|---|---|
+| malicious | legacy | 55.5 | 39.1 | 0.409 | 2.44 | 3,807,674 |
+| malicious | closed (scripts) | 65.7 | 46.3 | 0.346 | 2.89 | 4,063,534 |
+| semi-honest | legacy | 24.5 | 16.6 | 0.964 | 1.04 | 3,614,944 |
+| semi-honest | closed (scripts) | 37.4 | 26.9 | 0.595 | 1.68 | 3,967,144 |
+
+Per message the scripts cost about 18 % more time in the malicious mode and 62 % more in the
+semi-honest one, with 7-10 % more AND gates (the scripts' kernels are the same; the extra gates
+are the script path's word circuits and conversions that the C++ folded into its kernels). The
+semi-honest mode, where engine work is cheap, shows the per-batch cost: every script operation is
+one or more op 93 batches, each agreed on the control link (one more message delay than the legacy
+operation, plan R1) and checked by the Rust interpreter.
+
+Whole stages (seconds, the harness's `elapsed`; legacy column: the same stage all-legacy, this day):
+
+| stage | legacy | closed (scripts) |
+|---|---|---|
+| malicious `--runs 2 --signup` | (non-strict golden run; strict needed K8-style manifest lines, see PROOF_GAPS J27) | 178.8 |
+| malicious `--runs 0 --db` | 215.5 (non-strict) | 226.7 |
+| malicious `--runs 1 --db` | 239.5 (strict) | 274.2 |
+| compact signup `--devices 3` (libsignal) | 72.7 (receive 10.1, send 42.4) | 87.3 (receive 13.8, send 52.8) |
+| malicious `--runs 0 --recovery devices` | — | 233.3 |
+| semi-honest `--runs 2 --signup` | — | 146.0 |
+| malicious `--runs 0 --ceremony` (with `ceremony`: all eleven groups) | 83.8 (the ceremony non-strict, as the harness runs it) | 93.8 (strict) |
+
+("—": not run all-legacy this day.)
+
 ## What remains, with estimates
 
 | What | Gain |

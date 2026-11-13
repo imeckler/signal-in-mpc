@@ -454,3 +454,32 @@ acceptance of `closedSet` (all ten groups) and refusal of each nine-group subset
 selection that fails at run time (legacy ops 33 and 45 refused): it is now refuted
 (`check_contactSet_unclosed`). Every subset statement of the old `check_contactSet_partial` still holds
 (each of those eight-group selections is still refused). `Worker.startWith` gains `ceremony`.
+
+**Two defects the first closed run found (fixed, PROOF_GAPS J25, J26).** J25: the runner's `loaded`
+kernel names were read from the session's MANIFEST argument, which is the circuit cache TOOL; every
+scripted receive was refused at its first stage. Now from `CIRCUIT_MANIFEST` (`Config.circuitManifest`).
+J26: the final report's check counted only pipe operations, so every scripted send session reported
+`passed: false`; `Legacy.note` records each scripted flow operation under its legacy code.
+
+**The runs** (`SIGNAL_SCRIPTS` = the ten groups of `closedSet`, `--strict-produced`; legacy = the same
+stage all-legacy; timings in PERFORMANCE.md's newest section):
+
+| stage | scripts | records vs legacy / golden | differences explained |
+|---|---|---|---|
+| malicious `--runs 1 --db` | pass | equal to the legacy strict run (same modulo masks) | none |
+| malicious `--runs 2 --signup` | pass | equal to golden | none; needed the 2224 signup chain in the local manifest (J27): legacy strict fails there identically ("refused kernel receive-envelope-point 2224") |
+| malicious `--runs 0 --db` | pass | equal to golden | none |
+| compact signup `--devices 3` (libsignal profile, 409 → refresh of 3 devices) | pass (receive 13.8 s, send 52.8 s) | no records in this stage; both report "delivered after device refresh", every device decrypts | — |
+| malicious `--runs 0 --recovery devices` (legacy profile) | pass | no records; every check of the stage passes | the "websocket upgrade failed: 403" line is a test client's, present in legacy too |
+| semi-honest `--runs 2 --signup` | pass | equal to golden | none |
+| sustained 16 / restart 8, malicious and semi-honest | pass, both | no records; 32 messages delivered | per message +18 % (malicious), +62 % (semi-honest) |
+| `--runs 0 --ceremony` with `ceremony` too (`ceremonySet`, K7) | pass (register, certificate, store, the new account's signup and send; the password in no record or log) | — | needed the ceremony kernels (K8), `tls-seal-class 896` and the 2311 receive chain in the local manifest (J27) |
+
+The libsignal-profile `--recovery devices` defect (NEEDS_REVIEW 3f item 7, op 61) was not run with
+scripts: the stage was run under the legacy profile; the script path's `bundle-seal 138 0|1 79 …` is
+flagged by `send_script_kernels_check` on the compact set exactly as the legacy kernel is (F56, F59d),
+so it would fail closed the same way (not run).
+
+**Selectable for real now:** `random`; the closed selection (all ten groups) for every session but a
+ceremony; `ceremonySet` (all eleven) for a ceremony session. Nothing waits on S16 any more (merged).
+The default stays all-legacy (golden-equal, re-checked after the last change).
