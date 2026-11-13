@@ -107,7 +107,11 @@ def main():
     lines += ['', '# Restated theorems that depend (transitively) on a bv_decide proof']
     lines += [f'depends: {d[len("TlsMpc.Security."):]}' for d in sorted(bv_set)] or ['depends: none']
     if summary:
-        lines.append(f'# {summary[-1][0]} of {summary[-1][1]} entries')
+        # The file's own check counts every declaration under `TlsMpc.Security` (the restated theorems
+        # and the few definitions next to them), not only the restated theorems listed above.
+        total = int(summary[-1][1])
+        lines.append(f'# {summary[-1][0]} of {total} declarations under TlsMpc.Security depend on bv_decide '
+                     f'({len(names)} restated theorems, {total - len(names)} other declarations)')
     with open(OUTPUT, 'w') as f:
         f.write('\n'.join(lines) + '\n')
 

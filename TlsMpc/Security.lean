@@ -223,8 +223,10 @@ The order follows the catalogue of REORGANIZATION_PLAN.md section 8.2:
   **Now a theorem** (2026-11-12) in the Mathlib-backed package `proofs/`, which no executable
   and nothing in this package imports: `prime_modulus`, `two_not_square`, `euler_criterion`,
   `euler_nonsquare` (index: `proofs/TlsMpcProofs/SecurityMathlib.lean`, sections 1–2).
-* **idealCommit**: SHA-256 commitments are hiding and binding (commit-then-open; no entry here
-  states it yet — the commit-then-open exchanges are C++ today).
+* **idealCommit**: SHA-256 commitments are hiding and binding (commit-then-open). Entries take it as a
+  named hypothesis (`IdealCommit`: `prand_b_ideal`, P-CHAL (c)); with the script path the
+  commit-then-open exchanges are the scripts' own (`Random.joint`), on the default (legacy) path they
+  are still C++.
 * The pad `E = AES_K(J0)` is a fresh pseudorandom value (GHASH share entries).
 -/
 
@@ -2152,8 +2154,8 @@ theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment
 (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`). The slot check, the splice, the item: **K-fn**; the
 kernel on the cut of the body: **K**. Trusted: the C++ worker binds `head`/`before`/`item`/`after`/
 `end` as stated and pads the splice with the filler byte 0 (`service_kernels.h`,
-`bundle_establish`). Since the emitter batch (effective after the re-lowering) the padding is the
-filler 0, not `0`, and a `widths` input that disagrees with the splice no longer matters:
+`bundle_establish`). Since the emitter batch (the re-lowering took place on 2026-11-12, with the
+changed kernels in all three manifests: EMITTER_BATCH.md) the padding is the filler 0, not `0`, and a `widths` input that disagrees with the splice no longer matters:
 `bundleSlot_any_widths` holds for any item, not only one `device` accepts, and the former caveat
 `inconsistent_width_accepts` is `bundleSlot_inconsistent_width_refused` (NEEDS_REVIEW.md 3f,
 defect 2). -/
@@ -2862,8 +2864,8 @@ other checks passed; with the controller's wiring it also implies the certificat
 receive kernel's refusal releases nothing, and what an accepted one opens is stated. The opened
 field names of every receive kernel are listed (`receiveAccept_opened_*`). **K** (the session,
 text and access-key kernels on concrete values), **K-fn** where stated. The DEFECT recorded here
-before (`receive-text` accepted a body longer than its DataMessage) is fixed in the emitter batch
-and takes effect after the re-lowering: `receiveAcceptText_overlongBody_refused`, and
+before (`receive-text` accepted a body longer than its DataMessage) is fixed in the emitter batch,
+in effect since the re-lowering of 2026-11-12 (EMITTER_BATCH.md): `receiveAcceptText_overlongBody_refused`, and
 `receive-text` now accepts exactly what the reference parse accepts for covered widths
 (`receiveAcceptText_accepted_iff_reference`; NEEDS_REVIEW.md 3f). -/
 
@@ -4882,7 +4884,9 @@ theorem receivePolicy_replyScan_wrapper_tooLong (bytes : List PublicReceive.Byte
 
 What is stored, when state advances, and that sequence numbers are not reused. The send-side
 ordering (ORD-1: store acknowledged before send; ORD-2) and T11 are in 5b; the stock (T14) and
-the connection rotation (T15) in 5c; the database nonce rule (T10) is NOT proved (section 8). -/
+the connection rotation (T15) in 5c; the database nonce rule (T10): the worker flows' part is
+proved for the scripts (section 7a, `contactsWrite_write_fresh`); the controller's database-write
+part is NOT proved (section 8). -/
 
 /-! ### 5b. Ordering: ORD-1, ORD-2, T11 (proof track P4; `TlsMpc/Node/Session/*Proofs.lean`)
 
@@ -5611,8 +5615,9 @@ one function per kind; `Opened`'s constructor is private there, so a value of ty
 made by `r`'s function (by the type system, **C**, not a theorem), and the lint's `flow-calls` check
 allows those functions, the worker pipe and `Secret.inputOwn` only in the legacy flow
 implementations. Each function's docstring names the theorems above that bound its kind (or "none
-yet"). The flows are still worker operations (C++, trusted); T3/T4 per flow come with their scripts
-(S9-S16). -/
+yet"). On the default (legacy) path the flows are still worker operations (C++, trusted); with the
+script selection (`SIGNAL_SCRIPTS`, `Flows/Select.lean`) they are the scripts, whose T3/T4 per flow
+are in sections 7a–7k (S9–S16). -/
 
 /-- **The reveal kinds' codes are pairwise distinct** (so a code, and the engine label mapped to it,
 names its kind). **C**, by `decide`. -/
@@ -9658,8 +9663,9 @@ the matching section above in the same commit.
   `slotValid_pad`; wrong digit counts refuse: `device_unique`, `bundleSlot_wrong_counts`,
   `bundleSlot_parses_or_refuses`, `bundleSlot_any_widths`). The caveat `inconsistent_width_accepts`
   (a body whose number has a leading zero, spliced with one digit count but declared with another
-  in `widths`, was accepted where `device` refuses) is fixed in the emitter batch, effective after
-  the re-lowering together with the C++ worker's new filler byte: the splice pads with the byte 0
+  in `widths`, was accepted where `device` refuses) is fixed in the emitter batch, in effect since
+  the re-lowering of 2026-11-12 (EMITTER_BATCH.md) together with the C++ worker's new filler byte:
+  the splice pads with the byte 0
   instead of `0`, `bundleSlot_inconsistent_width_refused`, and `bundleSlot_any_widths` now holds
   for every item whose fields do not start with a NUL byte (`bundleSlot_zero_padding_ambiguous`:
   with `0` padding no kernel change alone could have fixed it). Still trusted: that the C++ worker
@@ -9701,7 +9707,8 @@ the matching section above in the same commit.
   the certificate checks under the controller's wiring; `receive-text` zero unless the session
   accepted; the `_rejects` lemmas; what `receive-text` and `receive-access-key` open). The DEFECT
   recorded here (`receive-text` accepted a body longer than its DataMessage) is fixed in the
-  emitter batch, effective after the re-lowering: `receiveAcceptText_overlongBody_refused`, and
+  emitter batch, in effect since the re-lowering of 2026-11-12 (EMITTER_BATCH.md):
+  `receiveAcceptText_overlongBody_refused`, and
   `receive-text` accepts exactly what the reference protobuf reading accepts for length prefixes of
   at most two bytes (`receiveAcceptText_accepted_iff_reference`,
   `receiveAcceptText_text_status_iff_reference`, `receiveAcceptText_text_accepted_reference`;
@@ -9760,7 +9767,9 @@ the matching section above in the same commit.
   ORD-2 after S15 (device refresh as scripts; PROOF_GAPS F59, I4). → **S13**, **S15**.
 * **T10** — database writes: every blob = nonce ‖ sealed blob with the nonce fresh joint
   randomness unused in the session; versions increase by one per acknowledged write (the version
-  half for the store functions: section 5b, `versions_*`). → **S9**.
+  half for the store functions: section 5b, `versions_*`). The worker flows' part is proved for the
+  scripts (section 7a, `contactsWrite_write_fresh`, T10 with two honest parties); open: the
+  controller's database-write half (that every write the controller makes is that blob). → **S9**.
 * **T14** — stock used once: DONE for the journal/use model (section 5c, `stock_*`, **M**); the
   engine instruction and the C ABI are specified, not built (PROOF_GAPS C5). → **X1** (rest).
 * **T15** — connection rotation reveals nothing about ids: the planner's action sequence is

@@ -60,7 +60,7 @@ and commit, do not delete it.
 | D5 | TLS record splitter applies the 2^14+256 limit to plaintext handshake records (RFC says 2^14); `receiveHello` checks it. | minor |
 | D6 | Request builders: the 200 reply theorem is conditional on the id found by `scan` being in range (loop invariant not proved); `replies` (pong/close echoes) not covered in `RequestProofs` (covered per frame in `ParseWebSocketControl*`). | conditional |
 | D7 | Hardening not done because proofs unfold these definitions: `varint` emits a malformed value at ≥ 2^70; `clientFrame` writes a one-byte length unchecked; builders accept an empty envelope; slot ranges exceed the server's types. | open (hardening) |
-| D8 | `t1_all` assumes `ReceiveLoop.Faithful` of the engines: the length probe returns the record's length, `revealRange offset count` returns that length and exactly `(record.drop offset).take count`, revealing those positions and no others, and the other record operations reveal nothing. A theorem for the S12 script backend (`reveal_value`, `range_value`, branch `s12-tls`, not merged); an assumption on the engines (A1) for the legacy operation 43 the controller uses today. | assumed (legacy) |
+| D8 | `t1_all` assumes `ReceiveLoop.Faithful` of the engines: the length probe returns the record's length, `revealRange offset count` returns that length and exactly `(record.drop offset).take count`, revealing those positions and no others, and the other record operations reveal nothing. For the S12 script backend the corresponding theorems are on the main line, at function level only (Security.lean `s12_tls_reveal_value`, `s12_tls_range_value`: what the reveal and range scripts return); `t1_all`'s `Faithful` is not derived from them. For the legacy operation 43 (the default path) it is an assumption on the engines (A1). | assumed (legacy); function-level theorems (scripts) |
 | D9 | Behaviour note (C1's refactor): the record loop now has fuel, the record's length plus one steps (`RecordLoop.run`), which never runs out when the engines report the same length at every reveal (`loop_fuel`, `run_fuel`). If an engine reported a longer record at a later reveal than at its length probe, the loop now fails ("the record's length changed while it was read") where the old `while` loop read on. | accepted (fails closed) |
 
 ## E. Kernels (what the circuits compute)
@@ -274,7 +274,7 @@ Stage S16, the registration ceremony as scripts (branch `s16-remaining`, merged 
 |---|---|---|
 | G1 | `handshakeShare` (client key share and hello random) | open |
 | G2 | `assignStatus` (a provisional contact took its id; one bit) | open |
-| G3 | `prepareStatus` (per-contact status byte). The statement needed exists: the lift is valid exactly when the coordinate is on the curve (`montQ_square_iff`, `liftPoint_valid_point` in `proofs/`). Attach it. | open (easy) |
+| G3 | `prepareStatus` (per-contact status byte): CLOSED, see the Closed table (H6, G3: `prepareStatus_iff`, conditional on H-QR and Euler's criterion as named hypotheses). Line kept so the numbering stays. | closed |
 | G4 | `jointRandom` for the legacy op 33 (the script version has P-RAND) | closes when the script replaces the op |
 | G5 | `serverBytes` is bounded by T1 (section D, C1). | see D, C1 |
 
@@ -289,6 +289,7 @@ Stage S16, the registration ceremony as scripts (branch `s16-remaining`, merged 
 | H5 | Offset agreement: two aborts not modelled (`mine = peer`, probability 2^-256; τ = 0, 2^-252); P-OFFSET about the C++ `step`. | open (small) |
 | H6 | P-HINT (b) for the script (S11). | open until S11 |
 | H7 | Rotation: the shuffle is uniform assuming SHA-256 keyed by the seed is a PRF (stated, not used in proofs). | assumed |
+| H8 | The deployed word-mask cut-and-choose profile is N = 16, B = 22 (`Masks.profile_worker`, S10_NOTES.md), but `proofs/` instantiates the undetected-cheating bound (`*_undetected_lt`) only for 2^19/8, 256/14, 512/13 and 1024/12. The generic `undetected_lt_of_bound_t1` would give the 2^-128 bound for 16/22, but its numeric hypothesis for N = 16, B = 22 is proved nowhere: no stated theorem bounds the profile that actually runs (ARCHITECTURE_AND_SECURITY.md, Appendix item 7). | open (numeric instance) |
 
 ## I. Session-level and reporting
 
