@@ -253,6 +253,80 @@ theorem quotient_honest (hinv : FieldInverse) (E : Env) (hq : E.programs quotien
   refine ⟨by simp [jointRun, hflag], ?_⟩
   simp [jointRun, Ideal.dropField, Ideal.setFields, Ideal.setField]
 
+/-! ## Well-formedness -/
+
+/-- **`quotientScript` is well formed**: the shell's `check` accepts every instruction on every
+branch, from any context where x and z are live and none of the five field ids from `f0` was
+ever defined, with `field-quotient` loaded (its V3 signature: 2 inputs, 1 mask, outputs never and
+public). -/
+theorem quotient_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 slot : Nat) (x z : FieldH)
+    (hp : c.progs quotientName = some (ProgSig.ofProgram quotient))
+    (hx : (c.field? x).isSome) (hz : (c.field? z).isSome)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2)
+    (hfresh : ∀ k < 5, f0 + k ∉ c.seenF) :
+    WF sigs c (quotientScript f0 slot x z) := by
+  have h0 := hfresh 0 (by omega)
+  have h1 := hfresh 1 (by omega)
+  have h2 := hfresh 2 (by omega)
+  have h3 := hfresh 3 (by omega)
+  have h4 := hfresh 4 (by omega)
+  simp only [Nat.add_zero] at h0
+  obtain ⟨mx, hmx⟩ := Option.isSome_iff_exists.mp hx
+  obtain ⟨mz, hmz⟩ := Option.isSome_iff_exists.mp hz
+  have hsig : ProgSig.ofProgram quotient = ⟨2, 1, [.never, .pub]⟩ := rfl
+  have n01 : f0 + 1 ≠ f0 := by omega
+  have n02 : f0 + 2 ≠ f0 := by omega
+  have n12 : f0 + 2 ≠ f0 + 1 := by omega
+  have n03 : f0 + 3 ≠ f0 := by omega
+  have n13 : f0 + 3 ≠ f0 + 1 := by omega
+  have n23 : f0 + 3 ≠ f0 + 2 := by omega
+  have n04 : f0 + 4 ≠ f0 := by omega
+  have n14 : f0 + 4 ≠ f0 + 1 := by omega
+  have n24 : f0 + 4 ≠ f0 + 2 := by omega
+  have n34 : f0 + 4 ≠ f0 + 3 := by omega
+  unfold quotientScript
+  refine TlsMpc.Node.Flows.Contacts.WF_seq sigs c _ _ _
+    (by simp [check, InstrP.skel, InstrP.map, Ctx.defFields, Ctx.defField, h0, h1, n01, Mark.ofInput]; rfl) ?_
+  have bne : ∀ a b : Nat, a ≠ b → (a == b) = false := fun a b h => by rw [beq_eq_false_iff_ne]; exact h
+  refine TlsMpc.Node.Flows.Contacts.WF_seq sigs _ _ _ _
+    (by simp [check, InstrP.skel, InstrP.map, Ctx.field?, Ctx.defField, h2, n12, n02, Mark.join, List.lookup_cons,
+      bne f0 (f0 + 1) (by omega)]; rfl) ?_
+  have lx : ∀ k, x.id ≠ k → ∀ (m : Mark) (l : List (Nat × Mark)), ((k, m) :: l).lookup x.id = l.lookup x.id :=
+    fun k h m l => by simp [List.lookup_cons, bne x.id k h]
+  have lz : ∀ k, z.id ≠ k → ∀ (m : Mark) (l : List (Nat × Mark)), ((k, m) :: l).lookup z.id = l.lookup z.id :=
+    fun k h m l => by simp [List.lookup_cons, bne z.id k h]
+  have hmx' : c.fields.lookup x.id = some mx := hmx
+  have hmz' : c.fields.lookup z.id = some mz := hmz
+  refine TlsMpc.Node.Flows.Contacts.WF_seq sigs _ _ _ _
+    (by
+      simp only [check, InstrP.skel, InstrP.map]
+      simp [hp, hsig, guard, Ctx.useMasks, Ctx.field?, Ctx.dropField, Ctx.defFields, Ctx.defField, Mark.join, h3, h4,
+        List.lookup_cons, bne (f0 + 2) (f0 + 1) n12, bne (f0 + 2) f0 n02, Ctx.lookup_filter_ne,
+        hfx.1, hfx.2.1, hfx.2.2, hfz.1, hfz.2.1, hfz.2.2, lx f0 hfx.1, lx (f0 + 1) hfx.2.1, lx (f0 + 2) hfx.2.2,
+        lz f0 hfz.1, lz (f0 + 1) hfz.2.1, lz (f0 + 2) hfz.2.2, hmx', hmz', n34, Label.maskedDenominator,
+        n03, n13, n23, n04, n14, n24]
+      rfl) ?_
+  · refine WF.step _ _ (.elems 1) _ _
+      (by simp [check, InstrP.skel, InstrP.map, Ctx.field?, Mark.openable, Label.maskedDenominator, guard]; rfl)
+      (fun r hr => ?_)
+    · cases r with
+      | elems v =>
+        simp only [Shape.Fits] at hr
+        match v, hr with
+        | [flag], _ =>
+          simp only [quotientRest, quotientTail]
+          refine TlsMpc.Node.Flows.Contacts.WF_seq sigs _ _ _ _
+            (by simp [check, InstrP.skel, InstrP.map, Ctx.field?, List.lookup_cons, bne f0 (f0 + 4) (by omega),
+              bne f0 (f0 + 3) (by omega), bne f0 (f0 + 1) (by omega)]; rfl) ?_
+          refine TlsMpc.Node.Flows.Contacts.WF_seq sigs _ _ _ _
+            (by simp [check, InstrP.skel, InstrP.map, Ctx.field?, Ctx.dropField, Ctx.lookup_filter_ne, n01,
+              List.lookup_cons, bne (f0 + 1) (f0 + 4) (by omega), bne (f0 + 1) (f0 + 3) (by omega)]; rfl) ?_
+          refine TlsMpc.Node.Flows.Contacts.WF_seq sigs _ _ _ _
+            (by simp [check, InstrP.skel, InstrP.map, Ctx.field?, Ctx.dropField, Ctx.lookup_filter_ne, n04, n14,
+              List.lookup_cons]; rfl) ?_
+          exact WF.done _ _
+      | _ => simp [Shape.Fits] at hr
+
 /-! ## P-INV (b), (c) with the mask's provenance -/
 
 /-- **The mask is uniform for an honest party**: for any contribution v of the other party,

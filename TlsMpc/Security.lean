@@ -5773,6 +5773,17 @@ theorem s10_challenge_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) 
     (domain : Bytes) (n : Nat) (c : Ctx) : WF sigs c (Random.challenge hash me nonce value domain n) :=
   Random.challenge_wf sigs hash me nonce value domain n c
 
+/-- **The masked quotient is well formed** [K]: from any context where x and z are live, the five
+field ids from `f0` fresh and `field-quotient` loaded, the shell's `check` accepts every
+instruction on every branch. -/
+theorem s10_quotient_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 slot : Nat) (x z : FieldH)
+    (hp : c.progs Inversion.quotientName = some (ProgSig.ofProgram TlsMpc.FieldDag.V3.quotient))
+    (hx : (c.field? x).isSome) (hz : (c.field? z).isSome)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2)
+    (hfresh : ∀ k < 5, f0 + k ∉ c.seenF) :
+    WF sigs c (Inversion.quotientScript f0 slot x z) :=
+  Inversion.quotient_wf sigs c f0 slot x z hp hx hz hfx hfz hfresh
+
 end FlowsS10
 
 /-! ## 8. NOT YET PROVED
@@ -6459,6 +6470,7 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s10_swapBits_spec
 #print axioms TlsMpc.Security.s10_flows_reveal
 #print axioms TlsMpc.Security.s10_challenge_wf
+#print axioms TlsMpc.Security.s10_quotient_wf
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
