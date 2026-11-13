@@ -1650,14 +1650,14 @@ mask pool meanwhile: **separate pools**):
   (`finishPhase_sound`, `mask_consistent`); (a) for a whole honest run through `jointRun`, deployed
   profiles included (`generate_honest_profile`); `generate_wf` (every deployed profile:
   `profile_sizes`) and `sharedBits_wf`; P-BITS at run level (`sharedBits_sound`,
-  `sharedBits_honest`); the counting model's hypotheses as theorems (`generate_sound`: the bad set
+  `sharedBits_honest`); P-B2F (a) through `jointRun` for the whole bundle (`b2f_honest`); the counting model's hypotheses as theorems (`generate_sound`: the bad set
   is the other party's choice from its view before the run, (d), (e), (f); `bucket_uniform`) and the
   two challenge permutations as the model's one arrangement (`arrangement_perm`). Still open:
-  P-B2F (a) through `jointRun` for the whole bundle; `_wf` for `wordToField`, `fieldToWord`,
+  `_wf` for `wordToField`, `fieldToWord`,
   `bitsToField`, `Account.openStep`; a one-statement value disclosure (P-CUT (b)) for the whole
   run; and, argued only, that the arrangement is uniform when the two permutations are and that the
   permutations are uniform and independent of the bad set (probability; `IdealCommit`, SHA-256 as a
-  random oracle). Security.lean section 7b now has 50 entries, compiled on their own (standard
+  random oracle). Security.lean section 7b now has 51 entries, compiled on their own (standard
   axioms only); `scripts/lint_node.py`: 0 findings.
 
 ---

@@ -101,8 +101,10 @@ See `TlsMpc/Security.lean` section 7b (and "7b continued") and the open list in 
 * P-CUT (h): the pool (`takeWord_fresh`, `takeBits_fresh`, `takes_distinct`) and the frees.
 * P-W2F, P-F2W: (a) through `jointRun` (honest, run level), (b) bijections in 7.0's form, T3 with
   values against any adversary, (c) single use.
-* P-B2F: (a) per bit, (b), T3 (the opened value is the xor output after the block), (c). Still
-  open: (a) through `jointRun` for the whole bundle.
+* P-B2F: (a) per bit, (b), T3 (the opened value is the xor output after the block), (c).
+  FOLLOW-UP: (a) through `jointRun` for the whole bundle, `ConvertRun.lean` `b2f_honest` (two
+  honest parties, consistent pairs on handles other than the script's own: both return `b2fOuts`,
+  stores unchanged, output i holds the field bit of x's bit i).
 * P-BITS (a) (with `FieldInverse`), (b), (c), protocol level. FOLLOW-UP, run level:
   `ConvertRun.lean` `sharedBits_sound` (any adversary: every input of both parties is 0 or 1 and
   the outputs are the field XORs) and `sharedBits_honest` (`jointRun`).

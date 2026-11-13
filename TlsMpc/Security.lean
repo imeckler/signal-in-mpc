@@ -6054,6 +6054,25 @@ theorem s10_pbits_honest (E : Env) (hP : Conv.ProgsLoaded E) (f0 n slotA slotB :
         some (TlsMpc.X25519.bitValue (as.getD i false ^^ bs.getD i false)) :=
   Convert.sharedBits_honest E hP f0 n slotA slotB σA σB I as bs hla hlb hA hB
 
+/-- **P-B2F (a) through `jointRun`, the whole bundle** [M; hyp: `WordLoaded`]: two honest parties
+convert the bits `xb` behind `x` with consistent pairs (pair `i`: the Boolean bit `ρ_i` and the field
+bit of `ρ_i`, on handles other than the script's own): both return `b2fOuts`, keep their stores, and
+output `i` holds the field bit of `xb_i`. -/
+theorem s10_pb2f_honest (E : Env) (hW : Conv.WordLoaded E) (n0 f0 : Nat) (x : BoolH) (ps : List Conv.BitPair)
+    (σA σB : Store) (I : Ideal) (xb ρ : Bits) (hx : I.bools x.id = some xb) (hxl : xb.length = ps.length)
+    (hρl : ρ.length = ps.length)
+    (hbits : (ps.map (·.bit)).mapM (fun h => I.bools h.id) = some (ρ.map fun r => [r]))
+    (hflds : ∀ i, i < ps.length →
+      I.fields (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id = some (TlsMpc.X25519.bitValue (ρ.getD i false)))
+    (hx0 : x.id ≠ n0)
+    (hfid : ∀ i, i < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 ∧
+      (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 1 ∧
+      ∀ j, j < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 2 + j) :
+    ∃ J, Run.JRet (jointRun E (Convert.bitsToField n0 f0 x ps) (Convert.bitsToField n0 f0 x ps) σA σB I)
+        (Convert.b2fOuts f0 ps.length) (Convert.b2fOuts f0 ps.length) J σA σB ∧
+      ∀ i, i < ps.length → J.fields (f0 + 2 + i) = some (TlsMpc.X25519.bitValue (xb.getD i false)) :=
+  Convert.b2f_honest E hW n0 f0 x ps σA σB I xb ρ hx hxl hρl hbits hflds hx0 hfid
+
 end FlowsS10
 
 /-! ## 8. NOT YET PROVED
@@ -6205,8 +6224,8 @@ the matching section above in the same commit.
   candidates for FIXED challenge randomness, and a bit block's reference below 32 (probability
   32/p) is revealed by the abort of its own run.
 * **P-PAIR / P-B2F**, **P-W2F**, **P-F2W**: (a), (b), T3, (c) proved (section 7b; W2F and F2W (a)
-  through `jointRun`, B2F (a) per bit). Open: B2F (a) through `jointRun` for the whole bundle; WF
-  theorems for `wordToField`, `fieldToWord`, `bitsToField`, `Account.openStep` (`sharedBits`:
+  through `jointRun`; B2F (a) per bit and, for the whole bundle through `jointRun`,
+  `s10_pb2f_honest`). Open: WF theorems for `wordToField`, `fieldToWord`, `bitsToField`, `Account.openStep` (`sharedBits`:
   `s10_sharedBits_wf`).
 * **P-BITS**: (a) with `FieldInverse` (the converse of `fieldBits_bitCheck_bit`), (b), (c) at the
   protocol level; at run level `s10_pbits_run` (any adversary: every input of both parties is a bit
@@ -6757,6 +6776,7 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s10_flows_reveal
 #print axioms TlsMpc.Security.s10_challenge_wf
 #print axioms TlsMpc.Security.s10_quotient_wf
+#print axioms TlsMpc.Security.s10_pb2f_honest
 #print axioms TlsMpc.Security.s10_pbits_run
 #print axioms TlsMpc.Security.s10_pbits_honest
 #print axioms TlsMpc.Security.s10_pcut_c_agree

@@ -240,4 +240,342 @@ theorem sharedBits_honest (hP : ProgsLoaded E) (f0 n slotA slotB : Nat) (σA σB
 
 end Runs
 
+/-! ## P-B2F (a) through `jointRun`: the whole bundle -/
+
+theorem localStep_sub (E : Env) (out a b : FieldH) (I : Ideal) :
+    localStep E (.fieldSub out a b) I =
+      match I.fields a.id, I.fields b.id with
+      | some x, some y => some (I.setField out (x - y))
+      | _, _ => none := by
+  simp only [localStep, idealStep, TlsMpc.Node.Flows.Contacts.blankWire, InstrP.map]
+  cases I.fields a.id <;> cases I.fields b.id <;> rfl
+
+/-- A block of field subtractions with distinct outputs that are none of the operands, every
+operand defined: each output holds the difference of its operands' values before the block. -/
+theorem runLocal_subs (E : Env) : ∀ (ts : List (FieldH × FieldH × FieldH)) (I : Ideal),
+    (ts.map (·.1.id)).Nodup → (∀ t ∈ ts, ∀ t' ∈ ts, t.1.id ≠ t'.2.1.id ∧ t.1.id ≠ t'.2.2.id) →
+    (∀ t ∈ ts, (I.fields t.2.1.id).isSome ∧ (I.fields t.2.2.id).isSome) →
+    ∃ I', runLocal E (ts.map fun t => .fieldSub t.1 t.2.1 t.2.2) I = some I' ∧ I'.bools = I.bools ∧
+      (∀ t ∈ ts, I'.fields t.1.id = some ((I.fields t.2.1.id).getD 0 - (I.fields t.2.2.id).getD 0)) ∧
+      (∀ j, (∀ t ∈ ts, t.1.id ≠ j) → I'.fields j = I.fields j)
+  | [], I, _, _, _ => ⟨I, rfl, rfl, by simp, fun _ _ => rfl⟩
+  | t :: ts, I, hn, hd, hs => by
+    obtain ⟨out, a, b⟩ := t
+    have hsa := (hs (out, a, b) (by simp)).1
+    have hsb := (hs (out, a, b) (by simp)).2
+    obtain ⟨x, hx⟩ := Option.isSome_iff_exists.mp hsa
+    obtain ⟨y, hy⟩ := Option.isSome_iff_exists.mp hsb
+    simp only [List.map_cons, List.nodup_cons, List.mem_map] at hn
+    have hd' : ∀ t ∈ ts, ∀ t' ∈ ts, t.1.id ≠ t'.2.1.id ∧ t.1.id ≠ t'.2.2.id :=
+      fun t ht t' ht' => hd t (by simp [ht]) t' (by simp [ht'])
+    have hfr : ∀ t ∈ ts, out.id ≠ t.2.1.id ∧ out.id ≠ t.2.2.id :=
+      fun t ht => hd (out, a, b) (by simp) t (by simp [ht])
+    have hs' : ∀ t ∈ ts, ((I.setField out (x - y)).fields t.2.1.id).isSome ∧
+        ((I.setField out (x - y)).fields t.2.2.id).isSome := by
+      intro t ht
+      have h1 := hfr t ht
+      have h2 := hs t (by simp [ht])
+      simp only [Ideal.setField]
+      rw [if_neg (Ne.symm h1.1), if_neg (Ne.symm h1.2)]
+      exact h2
+    obtain ⟨I', h1, h2, h3, h4⟩ := runLocal_subs E ts (I.setField out (x - y)) hn.2 hd' hs'
+    refine ⟨I', ?_, ?_, ?_, ?_⟩
+    · simp only [List.map_cons, runLocal, localStep_sub, hx, hy]
+      exact h1
+    · rw [h2]
+      rfl
+    · intro t ht
+      simp only [List.mem_cons] at ht
+      rcases ht with rfl | ht
+      · have hne : ∀ t ∈ ts, t.1.id ≠ out.id := fun t ht e => hn.1 ⟨t, ht, e⟩
+        rw [h4 _ hne]
+        simp [Ideal.setField, hx, hy]
+      · rw [h3 t ht]
+        have h1' := hfr t ht
+        simp only [Ideal.setField]
+        rw [if_neg (Ne.symm h1'.1), if_neg (Ne.symm h1'.2)]
+    · intro j hj
+      rw [h4 j (fun t ht => hj t (by simp [ht]))]
+      simp only [Ideal.setField]
+      rw [if_neg (Ne.symm (hj (out, a, b) (by simp)))]
+
+theorem runLocal_freeFields (E : Env) : ∀ (hs : List FieldH) (I : Ideal),
+    ∃ I', runLocal E (hs.map fun h => (.freeField h : Instr)) I = some I' ∧
+      ∀ j, (∀ h ∈ hs, h.id ≠ j) → I'.fields j = I.fields j
+  | [], I => ⟨I, rfl, fun _ _ => rfl⟩
+  | h :: hs, I => by
+    obtain ⟨I', h1, h2⟩ := runLocal_freeFields E hs (I.dropField h)
+    refine ⟨I', ?_, fun j hj => ?_⟩
+    · have e : localStep E (.freeField h) I = some (I.dropField h) := by
+        simp [localStep, idealStep, TlsMpc.Node.Flows.Contacts.blankWire, InstrP.map]
+      simp only [List.map_cons, runLocal, e]
+      exact h1
+    · rw [h2 j (fun g hg => hj g (by simp [hg]))]
+      simp only [Ideal.dropField]
+      rw [if_neg (Ne.symm (hj h (by simp)))]
+
+theorem mem_zipIdx' {α : Type} (d : α) : ∀ (l : List α) (k : Nat) (e : α × Nat), e ∈ l.zipIdx k →
+    k ≤ e.2 ∧ e.2 < k + l.length ∧ l.getD (e.2 - k) d = e.1
+  | [], k, e, h => by simp at h
+  | a :: l, k, e, h => by
+    rw [List.zipIdx_cons] at h
+    simp only [List.mem_cons] at h
+    rcases h with rfl | h
+    · simp
+    · obtain ⟨h1, h2, h3⟩ := mem_zipIdx' d l (k + 1) e h
+      refine ⟨by omega, by rw [List.length_cons]; omega, ?_⟩
+      have : e.2 - k = (e.2 - (k + 1)) + 1 := by omega
+      rw [this, List.getD_cons_succ]
+      exact h3
+
+theorem zipIdx_mem' {α : Type} (d : α) : ∀ (l : List α) (k i : Nat), i < l.length →
+    (l.getD i d, k + i) ∈ l.zipIdx k
+  | [], k, i, h => by simp at h
+  | a :: l, k, 0, _ => by
+    rw [List.zipIdx_cons]
+    simp
+  | a :: l, k, i + 1, h => by
+    rw [List.zipIdx_cons, List.getD_cons_succ]
+    have := zipIdx_mem' d l (k + 1) i (by simpa using h)
+    rw [show k + (i + 1) = k + 1 + i by omega]
+    exact List.mem_cons_of_mem _ this
+
+theorem interleave_map (xb ρ : Bits) (n : Nat) (hx : xb.length = n) :
+    (interleave n).map ((xb ++ ρ).getD · false) =
+      ((List.range n).map fun i => [xb.getD i false, ρ.getD i false]).flatten := by
+  unfold interleave
+  rw [List.map_flatMap, flatten_map']
+  apply TlsMpc.Node.Flows.Masks.flatMap_congr'
+  intro i hi
+  have hi' := List.mem_range.mp hi
+  show [(xb ++ ρ).getD i false, (xb ++ ρ).getD (n + i) false] = _
+  simp only [List.getD_eq_getElem?_getD]
+  rw [List.getElem?_append_left (by omega), List.getElem?_append_right (by omega), hx, Nat.add_sub_cancel_left]
+
+section B2F
+
+variable (E : Env)
+
+/-- **P-B2F (a) through `jointRun`, the whole bundle.** Two honest parties convert the bits `xb`
+behind `x` with consistent pairs (pair `i`: the Boolean bit `ρ_i` and the field bit of `ρ_i`):
+both return the handles `b2fOuts`, their stores are unchanged, and output `i` holds the field bit
+of `xb_i`. (The pairs' field handles are not the script's own handles `f0`, `f0 + 1`,
+`f0 + 2 + j`; `x` is not the script's handle `n0`.) -/
+theorem b2f_honest (hW : WordLoaded E) (n0 f0 : Nat) (x : BoolH) (ps : List BitPair) (σA σB : Store) (I : Ideal)
+    (xb ρ : Bits) (hx : I.bools x.id = some xb) (hxl : xb.length = ps.length) (hρl : ρ.length = ps.length)
+    (hbits : (ps.map (·.bit)).mapM (fun h => I.bools h.id) = some (ρ.map fun r => [r]))
+    (hflds : ∀ i, i < ps.length →
+      I.fields (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id = some (X25519.bitValue (ρ.getD i false)))
+    (hx0 : x.id ≠ n0)
+    (hfid : ∀ i, i < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 ∧ (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 1 ∧
+      ∀ j, j < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 2 + j) :
+    ∃ J, JRet (jointRun E (bitsToField n0 f0 x ps) (bitsToField n0 f0 x ps) σA σB I) (b2fOuts f0 ps.length)
+        (b2fOuts f0 ps.length) J σA σB ∧
+      ∀ i, i < ps.length → J.fields (f0 + 2 + i) = some (X25519.bitValue (xb.getD i false)) := by
+  -- the Boolean block
+  have s1 := TlsMpc.Node.Flows.Masks.localStep_concat E ⟨n0⟩ _ I _ hbits
+  rw [flatten_singletons] at s1
+  have s2 := TlsMpc.Node.Flows.Masks.localStep_concat E ⟨n0 + 1⟩ [x, ⟨n0⟩] (I.setBool ⟨n0⟩ ρ) [xb, ρ]
+    (by simp [List.mapM_cons, Ideal.setBool, hx, hx0])
+  have e2 : [xb, ρ].flatten = xb ++ ρ := by simp
+  rw [e2] at s2
+  have hidx : (interleave ps.length).all (· < (xb ++ ρ).length) = true := by
+    simp only [List.all_eq_true, decide_eq_true_eq, interleave, List.mem_flatMap, List.mem_range, List.mem_cons,
+      List.not_mem_nil, or_false, List.length_append, hxl, hρl]
+    rintro i ⟨j, hj, rfl | rfl⟩ <;> omega
+  have s3 := TlsMpc.Node.Flows.Masks.localStep_pick E ⟨n0 + 2⟩ ⟨n0 + 1⟩ _
+    ((I.setBool ⟨n0⟩ ρ).setBool ⟨n0 + 1⟩ (xb ++ ρ)) (xb ++ ρ) (by simp [Ideal.setBool]) hidx
+  rw [interleave_map xb ρ ps.length hxl] at s3
+  have hL : ∀ y ∈ (List.range ps.length).map (fun i => [xb.getD i false, ρ.getD i false]),
+      y.length = xorBitOpenC.inWidth := by
+    intro y hy
+    simp only [List.mem_map] at hy
+    obtain ⟨i, -, rfl⟩ := hy
+    rfl
+  have s4 := TlsMpc.Node.Flows.Masks.localStep_run E ⟨n0 + 3⟩ ⟨n0 + 2⟩ xorBitOpenName ps.length xorBitOpenC
+    (((I.setBool ⟨n0⟩ ρ).setBool ⟨n0 + 1⟩ (xb ++ ρ)).setBool ⟨n0 + 2⟩
+      ((List.range ps.length).map fun i => [xb.getD i false, ρ.getD i false]).flatten)
+    ((List.range ps.length).map fun i => [xb.getD i false, ρ.getD i false]).flatten
+    hW.xorBitOpen (by simp [Ideal.setBool])
+    (by
+      rw [TlsMpc.Node.Flows.Masks.length_flatten_eq 2 _ hL, List.length_map, List.length_range]
+      rfl)
+  have e4 := TlsMpc.Node.Flows.Masks.runCopies_flatten xorBitOpenC _ hL
+  rw [List.length_map, List.length_range] at e4
+  have e4' : (((List.range ps.length).map fun i => [xb.getD i false, ρ.getD i false]).map xorBitOpenC.eval).flatten =
+      (List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false)) := by
+    rw [List.map_map]
+    exact flatten_map_singleton' (fun i => (xb.getD i false ^^ ρ.getD i false)) (List.range ps.length)
+  rw [e4, e4'] at s4
+  have hblock : runLocal E (b2fBlock n0 x ps) I =
+      some ((((I.setBool ⟨n0⟩ ρ).setBool ⟨n0 + 1⟩ (xb ++ ρ)).setBool ⟨n0 + 2⟩
+        ((List.range ps.length).map fun i => [xb.getD i false, ρ.getD i false]).flatten).setBool ⟨n0 + 3⟩
+        ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false)))) := by
+    simp only [b2fBlock, runLocal, s1, s2, s3, s4]
+  generalize hI4 : (((I.setBool ⟨n0⟩ ρ).setBool ⟨n0 + 1⟩ (xb ++ ρ)).setBool ⟨n0 + 2⟩
+        ((List.range ps.length).map fun i => [xb.getD i false, ρ.getD i false]).flatten).setBool ⟨n0 + 3⟩
+        ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))) = I4 at hblock
+  have hI4f : I4.fields = I.fields := by rw [← hI4]; rfl
+  have hI4o : I4.bools (n0 + 3) = some ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))) := by
+    rw [← hI4]
+    simp [Ideal.setBool]
+  -- the tail
+  have hA : runLocal E [(.fieldPublic ⟨f0⟩ (ofNat 1) : Instr), .fieldPublic ⟨f0 + 1⟩ (ofNat 0)] I4 =
+      some ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0)) := by
+    simp [runLocal, localStep, idealStep, TlsMpc.Node.Flows.Contacts.blankWire, InstrP.map]
+  have hI5 : ∀ j, j ≠ f0 → j ≠ f0 + 1 →
+      ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0)).fields j = I.fields j := by
+    intro j h0 h1
+    simp only [Ideal.setField]
+    rw [if_neg h1, if_neg h0, hI4f]
+  have hI5a : ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0)).fields f0 = some (ofNat 1) := by
+    simp [Ideal.setField]
+  have hI5b : ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0)).fields (f0 + 1) = some (ofNat 0) := by
+    simp [Ideal.setField]
+  -- the subtractions as triples
+  have hS : (ps.zipIdx.map fun e =>
+      if ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))).getD e.2 false then
+        (.fieldSub ⟨f0 + 2 + e.2⟩ ⟨f0⟩ e.1.field : Instr)
+      else .fieldSub ⟨f0 + 2 + e.2⟩ e.1.field ⟨f0 + 1⟩) =
+      (ps.zipIdx.map fun e =>
+        if ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))).getD e.2 false then
+          ((⟨f0 + 2 + e.2⟩, ⟨f0⟩, e.1.field) : FieldH × FieldH × FieldH)
+        else (⟨f0 + 2 + e.2⟩, e.1.field, ⟨f0 + 1⟩)).map fun t => (.fieldSub t.1 t.2.1 t.2.2 : Instr) := by
+    rw [List.map_map]
+    apply List.map_congr_left
+    intro e _
+    simp only [Function.comp_apply]
+    split <;> rfl
+  have hmemT : ∀ t ∈ (ps.zipIdx.map fun e =>
+        if ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))).getD e.2 false then
+          ((⟨f0 + 2 + e.2⟩, ⟨f0⟩, e.1.field) : FieldH × FieldH × FieldH)
+        else (⟨f0 + 2 + e.2⟩, e.1.field, ⟨f0 + 1⟩)),
+      ∃ i, i < ps.length ∧ t.1.id = f0 + 2 + i ∧
+        ((t.2.1.id = f0 ∧ t.2.2.id = (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id) ∨
+          (t.2.1.id = (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ∧ t.2.2.id = f0 + 1)) := by
+    intro t ht
+    simp only [List.mem_map] at ht
+    obtain ⟨e, he, rfl⟩ := ht
+    obtain ⟨-, h2, h3⟩ := mem_zipIdx' (⟨⟨0⟩, ⟨0⟩⟩ : BitPair) ps 0 e he
+    rw [Nat.sub_zero] at h3
+    refine ⟨e.2, by omega, ?_, ?_⟩
+    · split <;> rfl
+    · rw [h3]
+      split
+      · exact Or.inl ⟨rfl, rfl⟩
+      · exact Or.inr ⟨rfl, rfl⟩
+  obtain ⟨I6, g1, g2, g3, g4⟩ := runLocal_subs E _ ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0))
+    (by
+      rw [List.map_map]
+      have e : (ps.zipIdx.map ((fun t : FieldH × FieldH × FieldH => t.1.id) ∘ fun e =>
+          if ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))).getD e.2 false then
+            ((⟨f0 + 2 + e.2⟩, ⟨f0⟩, e.1.field) : FieldH × FieldH × FieldH)
+          else (⟨f0 + 2 + e.2⟩, e.1.field, ⟨f0 + 1⟩))) = List.range' (f0 + 2) ps.length := by
+        have e' : (ps.zipIdx.map ((fun t : FieldH × FieldH × FieldH => t.1.id) ∘ fun e =>
+            if ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))).getD e.2 false then
+              ((⟨f0 + 2 + e.2⟩, ⟨f0⟩, e.1.field) : FieldH × FieldH × FieldH)
+            else (⟨f0 + 2 + e.2⟩, e.1.field, ⟨f0 + 1⟩))) = ps.zipIdx.map (fun e => f0 + 2 + e.2) := by
+          apply List.map_congr_left
+          intro e _
+          simp only [Function.comp_apply]
+          split <;> rfl
+        rw [e', List.zipIdx_eq_zip_range']
+        apply List.ext_getElem <;> simp
+      rw [e]
+      exact List.nodup_range')
+    (fun t ht t' ht' => by
+      obtain ⟨i, hi, e1, -⟩ := hmemT t ht
+      obtain ⟨j, hj, -, e2⟩ := hmemT t' ht'
+      obtain ⟨n1, n2, n3⟩ := hfid j hj
+      have := n3 i hi
+      rcases e2 with ⟨a1, a2⟩ | ⟨a1, a2⟩
+      · rw [e1, a1, a2]
+        exact ⟨by omega, fun h => this h.symm⟩
+      · rw [e1, a1, a2]
+        exact ⟨fun h => this h.symm, by omega⟩)
+    (fun t ht => by
+      obtain ⟨i, hi, -, e2⟩ := hmemT t ht
+      obtain ⟨n1, n2, -⟩ := hfid i hi
+      have hp : ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0)).fields
+          (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id = some (X25519.bitValue (ρ.getD i false)) := by
+        rw [hI5 _ n1 n2]
+        exact hflds i hi
+      rcases e2 with ⟨a1, a2⟩ | ⟨a1, a2⟩
+      · rw [a1, a2, hI5a, hp]
+        exact ⟨rfl, rfl⟩
+      · rw [a1, a2, hI5b, hp]
+        exact ⟨rfl, rfl⟩)
+  -- the frees
+  obtain ⟨I7, k1, k2, -⟩ := TlsMpc.Node.Flows.Masks.runLocal_frees E
+    ([⟨n0⟩, ⟨n0 + 1⟩, ⟨n0 + 2⟩, ⟨n0 + 3⟩] ++ ps.map (·.bit)) I6
+  obtain ⟨I8, m1, m2⟩ := runLocal_freeFields E (ps.map (·.field)) I7
+  obtain ⟨I9, r1, r2⟩ := runLocal_freeFields E [⟨f0⟩, ⟨f0 + 1⟩] I8
+  have htail : runLocal E (b2fTail n0 f0 ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))) ps)
+      I4 = some I9 := by
+    have hFF : ps.map (fun q => (.freeField q.field : Instr)) =
+        (ps.map (·.field)).map fun h => (.freeField h : Instr) := by
+      rw [List.map_map]
+      rfl
+    rw [b2fTail, runLocal_append, runLocal_append, runLocal_append, runLocal_append, hA]
+    simp only [Option.bind_some]
+    rw [hS, g1]
+    simp only [Option.bind_some]
+    rw [k1]
+    simp only [Option.bind_some]
+    rw [hFF, m1]
+    simp only [Option.bind_some]
+    exact r1
+  refine ⟨I9, ?_, fun i hi => ?_⟩
+  · unfold bitsToField
+    refine jret_locals E _ _ σA σB _ _ I9 σA σB _ (fun i hi => by
+      simp only [b2fBlock, List.mem_cons, List.not_mem_nil, or_false] at hi
+      rcases hi with rfl | rfl | rfl | rfl <;> rfl) I I4 hblock ?_
+    refine jret_openThen E ⟨n0 + 3⟩ _ _ _ σA σB I4 _ _ _ I9 σA σB hI4o ?_
+    rw [if_pos (by rw [List.length_map, List.length_range])]
+    refine jret_locals E _ _ σA σB _ _ I9 σA σB _ (b2fTail_local n0 f0 _ ps) I4 I9 htail ?_
+    exact jret_done E _ _ σA σB I9
+  · obtain ⟨n1, n2, n3⟩ := hfid i hi
+    have hne : ∀ h ∈ ps.map (·.field), h.id ≠ f0 + 2 + i := by
+      intro h hh
+      simp only [List.mem_map] at hh
+      obtain ⟨q, hq, rfl⟩ := hh
+      obtain ⟨j, hj, hqj⟩ : ∃ j, j < ps.length ∧ ps.getD j ⟨⟨0⟩, ⟨0⟩⟩ = q := by
+        obtain ⟨j, hj, e⟩ := List.getElem_of_mem hq
+        exact ⟨j, hj, by simp [List.getD_eq_getElem?_getD, hj, e]⟩
+      rw [← hqj]
+      exact (hfid j hj).2.2 i hi
+    rw [r2 _ (by
+        intro h hh
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hh
+        rcases hh with rfl | rfl <;> (dsimp only; omega)),
+      m2 _ hne, k2]
+    -- the subtraction of pair i
+    have hmem := zipIdx_mem' (⟨⟨0⟩, ⟨0⟩⟩ : BitPair) ps 0 i hi
+    rw [Nat.zero_add] at hmem
+    have ho : ((List.range ps.length).map (fun i => (xb.getD i false ^^ ρ.getD i false))).getD i false =
+        (xb.getD i false ^^ ρ.getD i false) := getD_map_range _ _ _ _ hi
+    have hp : ((I4.setField ⟨f0⟩ (ofNat 1)).setField ⟨f0 + 1⟩ (ofNat 0)).fields
+        (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id = some (X25519.bitValue (ρ.getD i false)) := by
+      rw [hI5 _ n1 n2]
+      exact hflds i hi
+    have hval := b2f_value (xb.getD i false) (ρ.getD i false)
+    by_cases hc : (xb.getD i false ^^ ρ.getD i false) = true
+    · have := g3 (⟨f0 + 2 + i⟩, ⟨f0⟩, (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field) (by
+        simp only [List.mem_map]
+        exact ⟨(ps.getD i ⟨⟨0⟩, ⟨0⟩⟩, i), hmem, by simp only [ho, hc, if_true]⟩)
+      rw [hc, if_pos rfl] at hval
+      show I6.fields (f0 + 2 + i) = _
+      rw [this, hI5a, hp, ← hval]
+      rfl
+    · have hc' : (xb.getD i false ^^ ρ.getD i false) = false := by simpa using hc
+      have := g3 (⟨f0 + 2 + i⟩, (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field, ⟨f0 + 1⟩) (by
+        simp only [List.mem_map]
+        exact ⟨(ps.getD i ⟨⟨0⟩, ⟨0⟩⟩, i), hmem, by simp only [ho, hc', Bool.false_eq_true, if_false]⟩)
+      rw [hc', if_neg (by simp)] at hval
+      show I6.fields (f0 + 2 + i) = _
+      rw [this, hp, hI5b, ← hval]
+      rfl
+
+end B2F
+
 end TlsMpc.Node.Flows.Convert
