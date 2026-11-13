@@ -75,16 +75,64 @@ See `TlsMpc/Security.lean` section 7c and section 8. In short (all standard axio
   holds `montU (T_A + T_B)`, the denominator from `CompleteAddition`), `pointExchange_honest`,
   `splitBegin_honest` (both parties get `u(P_A + P_B)`). The other flows are checked executably
   (`tests/s11_vectors.txt`: 51 `check … ok` lines against `Local/Edwards` and `X25519.spec`).
+* **Honest runs, second follow-up** (F22, `Flows/CurveRun.lean` … `CurveRunF.lean`, imported by
+  `Security.lean` only): `quotientMany_honest` (the block-level ideal-state lemma: n quotients in
+  one round, handle `f + 3n + 2j` holds `x_j·z_j⁻¹`, nothing outside the block changes);
+  `agree_honest` (n X25519 agreements: the quotient handles hold `X25519.spec bits_j u_j`, via
+  `X25519Fast.spec_eq_quotient` and `x25519_inverse_eq`); `offsetPrepare_honest` (both return
+  `prepState f0 (P_A + P_B)`, the table handles hold `edwards-prepare`'s outputs);
+  `offsetStep_honest`/`offsetStep_value` (`u = montU (K₀ + τ·B)`, the agreement handle holds the
+  Montgomery u of the selected sum, `offsetSum_eval`); `offsetStepFast_honest`; `tables_honest`;
+  `agreeAffine_honest`; `signatures_honest`; `torsion_honest`; `lift_honest` (`CurveRunG`: checks
+  open to zero, `w` opened, public roots, `lift-point`, `Z` opened; returns `liftResult`);
+  `agreeHinted_honest` (`CurveRunH`: live jobs, result assembled in job order). Block tools: `inputs_run`,
+  `sharedBlock_run`, `runProgram_one`, `runProgram_live`, `outs_value`. Program hypotheses (named):
+  `ComputesD p k m o f` (every evaluation that returns gives `f input`: `FieldDagV3.eval_compileAll`
+  for a translated artifact; `computesD_of_computes` for mask-free programs) and `Live p input`
+  (nonzero masks never abort: `FieldDagV3.eval_ofArtifact_some` with nonzero honest denominators).
+  Security.lean: `s11_quotientMany_honest`, `s11_agree_honest`, `s11_offset_honest`,
+  `s11_hinted_honest`, `s11_lift_agreeHinted_honest` (compiled standalone: standard axioms only).
+  Still open: `prepareSecond` (its K₀ exchange carries m points; `pointExchange_honest` is for one)
+  and `prepareContacts` as a staged flow through `Staged.jointRun`.
+* **Value-level T3 for the quotient round** (F24, part; `Flows/CurveRunI.lean`):
+  `quotientMany_disclosure` (against any adversary the view is a prefix of [`z_j·m_j`, the zero
+  flags] for the masks the engines hold; `s11_quotientMany_disclosure`). Open: the checks, `w`,
+  `Z` and the programs' own `D` openings with values; P-HINT (c), (d) composed with the runs (F27).
 * **`commit_open_sound` for `pointExchange`** (F25, `Flows/CurveCommit.lean`):
   `pointExchange_sound` (an accepted exchange used the adversary's commitment chosen from its view
   and our commitment only, opened under its own frame, different from ours; the points returned
   are our continuation `pointsOf` on the two openings), `pointExchange_copy_aborts`; value-level
   T3 for it (F24, part): `pointExchange_disclosure` (the adversary's view is a prefix of [our
   commitment, our opening]). Value-level T3 for the other curve flows stays open.
+* **Program hypotheses discharged** (F22a, third follow-up; `Flows/CurveCompiled.lean`,
+  `CurveProgLive.lean`): `compileAll_good` (every node of an accepted compilation is a subterm of
+  the source: an invariant of `FieldDag.generate` through the `Std.HashMap` lemmas), so
+  `Compiled.Decl.live` — a declaration's program never aborts where every source division `a / b`
+  has `b ≠ 0` (`DivOk`) — and `Decl.outputs_length`. `computesD_of_decl` (`Decl.values`). Per
+  program: `PL.*_divOk` from the programs' definitions with a point calculus (`PtOk`, `ExtOk`:
+  `pointAdd_ok`, `sumTree_ok`, `window_ok`, `table_ok`, `extAdd_ok`, `extSum_ok`, `toAffine_ok`,
+  `choose*_ok`, `bases_ok`, `links_ok`, `masked_ok`, `doublings_ok`); the input conditions
+  `PL.PrepareIn`, `OffsetSumIn`, `LiftPointIn`, `PrepareHintedIn`, `BitTableIn`, `SignatureIn`,
+  `TorsionIn`; named group facts `AddClosed`, `ExtClosed` (with `ExtGood` = `ExtRep` in field
+  elements), `RecipientOnCurve` (`proofs/` `pointAddValue_is_group_add`, `extAddValue_is_group_add`,
+  `recipient_on_curve`), with `CompleteAddition` (the `x` denominator by negating a point,
+  `den_x_ne`). The loader's facts are hypotheses `dX.program = some p`, `p.masks = m` (F25c).
+* **Honest runs without program hypotheses** (F22a, F22b; `Flows/CurveRunJ.lean`): `agree_honest'`,
+  `offsetStep_value'`, `offsetStepFast_honest'`, `offsetPrepare_honest'`, `signatures_honest'`,
+  `torsion_honest'`, `agreeAffine_honest'`, `agreeHinted_honest'`, `tables_honest'`, `lift_honest'`,
+  `splitAgree_montU'`. Checks derived: `prepare_checks` (505), `liftOpen_checks` (4),
+  `liftPoint_Z_onCurve` (the opened `Z`); `bitTable_checks` (126) from `TableLinked` (the program's own
+  `LinkedFrom`; from honest hints it is the group law — open). Security.lean: `s11_decl_live`,
+  `s11_programs_live`, `s11_maskfree_computes`, `s11_checks_vanish`, `s11_offsetPrepare_honest'`.
+* **Local liveness** (F25b, `Flows/CurveLocalLive.lean`): `invAll_some`, `toAffineAll_isSome`,
+  `hints_isSome` (Z and the party's mask point on the curve), `publicTable_isSome`
+  (`s11_toAffineAll_live`). F22 part (`Flows/CurveRunK.lean`): `pointExchange_many_honest`
+  (`s11_pointExchange_many_honest`).
 * **Liveness** (F33, F28, `Flows/CurveLive.lean`): `sqrt_complete` (`FieldInverse`,
   `EulerCriterion`), `root_isSome`/`roots_isSome` (with `TwoNonSquare`: the lift's root never
   fails), `addU_den_ne_zero` (`CompleteAddition`, discharged by `proofs/` `edwards_complete`).
-  Not proved (tested): `decode (encode P) = some P`, `toAffineAll` on nonzero `Z`.
+  Not proved (tested): `decode (encode P) = some P` (`toAffineAll` on nonzero `Z`: proved since,
+  `CurveLocalLive.lean`).
 
 ## Kinds
 
@@ -141,7 +189,10 @@ the links in one opening, as the C++).
 
 * New Lean: `TlsMpc/Node/Local/{Field,Edwards}.lean`, `TlsMpc/Node/Flows/{CurveBase,Curve,CurveProofs}.lean`,
   and (follow-up) `TlsMpc/Node/Flows/{CurveWFBase,CurveWF,CurveLive,CurveCommit,CurveHonest}.lean`
-  (imported by `Security.lean` only). The branch merged `s10-conversions` (its `WFP` machinery).
+  (imported by `Security.lean` only), and (second follow-up) `TlsMpc/Node/Flows/CurveRun{,B,C,D,E,F,G,H,I}.lean`
+  (a chain; `Security.lean` imports `CurveRunI`), and (third follow-up)
+  `TlsMpc/Node/Flows/{CurveCompiled,CurveProgLive,CurveRunJ,CurveLocalLive,CurveRunK}.lean`
+  (`Security.lean` imports `CurveRunJ`, `CurveRunK`, `CurveLocalLive`). The branch merged `s10-conversions` (its `WFP` machinery).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (six labels, `kinds`, `all`, `all_codes`),
   `TlsMpc/Node/Flows/Registry.lean` (S11 entries, `s11_flows_reveal`; imports CurveProofs),
   `TlsMpc/Security.lean` (section 7c, section 8 items, `#print axioms` lines),
