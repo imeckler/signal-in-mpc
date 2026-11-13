@@ -281,24 +281,29 @@ def liftResult (f0 n : Nat) (zv : List F) (rs : List (F × F × Bool)) : List Li
 Opened, in this order: the 4n checks (`curveChecks`, must be 0), the n values `w` (`liftW`), the
 lift-point openings (`maskedDenominator`), the n masked points `Z` (`liftZ`, must be curve points).
 Handles `f0 …` (`liftSpan n`). -/
-def lift (f0 : Nat) (s : LiftSlots) (us : List FieldH) : Script (List Lifted) :=
-  let n := us.length
-  if n = 0 then .done [] else
-  seqs (liftBlock f0 s us) <|
-  openFieldThen (liftChecks f0 n) Label.curveChecks fun z =>
-  if z.length = 4 * n ∧ allZero z = true then
-    openFieldThen (liftWs f0 n) Label.liftW fun ws =>
-    if ws.length = n then
-      match roots ws with
-      | none => .abort "lift root"
-      | some rs =>
-        seqs (pointBlock f0 s us rs) <|
-        openFieldThen (liftZs f0 n) Label.liftZ fun zv =>
-        if zv.length = 2 * n ∧ (liftResult f0 n zv rs).all (fun l => onCurve l.z) then
-          seqs (liftFrees f0 n) (.done (liftResult f0 n zv rs))
-        else .abort "hinted lift: Z is not a curve point"
-    else .abort "reply shape"
+def liftAfterZ (f0 n : Nat) (rs : List (F × F × Bool)) (zv : List F) : Script (List Lifted) :=
+  if zv.length = 2 * n ∧ (liftResult f0 n zv rs).all (fun l => onCurve l.z) then
+    seqs (liftFrees f0 n) (.done (liftResult f0 n zv rs))
+  else .abort "hinted lift: Z is not a curve point"
+
+def liftAfterW (f0 : Nat) (s : LiftSlots) (us : List FieldH) (ws : List F) : Script (List Lifted) :=
+  if ws.length = us.length then
+    match roots ws with
+    | none => .abort "lift root"
+    | some rs =>
+      seqs (pointBlock f0 s us rs) <|
+      openFieldThen (liftZs f0 us.length) Label.liftZ (liftAfterZ f0 us.length rs)
+  else .abort "reply shape"
+
+def liftAfterChecks (f0 : Nat) (s : LiftSlots) (us : List FieldH) (z : List F) : Script (List Lifted) :=
+  if z.length = 4 * us.length ∧ allZero z = true then
+    openFieldThen (liftWs f0 us.length) Label.liftW (liftAfterW f0 s us)
   else .abort "hinted lift: a mask contribution is not a bit or not a curve point"
+
+def lift (f0 : Nat) (s : LiftSlots) (us : List FieldH) : Script (List Lifted) :=
+  if us.length = 0 then .done [] else
+  seqs (liftBlock f0 s us) <|
+  openFieldThen (liftChecks f0 us.length) Label.curveChecks (liftAfterChecks f0 s us)
 
 /-- LOCAL (before `lift`): a party's coins and mask points from its randomness (`randomPoint`). -/
 def liftLocalInputs (rnd : List (Nat × Nat × Bool)) : List F × List F :=
