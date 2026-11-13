@@ -79,7 +79,10 @@ COPY src/lean-toolchain src/lakefile.toml src/lake-manifest.json src/TlsMpc.lean
 COPY src/TlsMpc /src/TlsMpc
 COPY src/handshake_backend /src/handshake_backend
 WORKDIR /src
-RUN set -eux; test "$(cat lean-toolchain)" = "${LEAN_TOOLCHAIN}"; lake build public_service_controller; \
+# LEAN_JOBS bounds Lake's parallelism (the Lean runtime's thread pool): each job is a `lean`
+# process of up to a few GB, and the build VM's memory is the limit, not its cores.
+ARG LEAN_JOBS=4
+RUN set -eux; test "$(cat lean-toolchain)" = "${LEAN_TOOLCHAIN}"; LEAN_NUM_THREADS="${LEAN_JOBS}" lake build public_service_controller; \
     install -D .lake/build/bin/public_service_controller /out/bin/public_service_controller
 # The certificate checker the controller runs on the server's chain (as run_real_test.py builds it).
 RUN set -eux; c++ -std=c++20 -O2 handshake_backend/public_auth.cpp -lssl -lcrypto -o /out/bin/public_auth

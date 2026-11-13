@@ -63,5 +63,10 @@ OT_OBJECTS="OT/BaseOT.o OT/BitDiagonal.o OT/MascotParams.o OT/OTExtension.o OT/O
     echo "-lemp-ot"
     echo "-lemp-tool"
     echo "-lstdc++"
+    # rustc links with -nodefaultlibs and puts -lc before these arguments; the static C libraries
+    # above (SimplestOT: __stack_chk_guard, which aarch64 glibc defines in the dynamic loader)
+    # need the C library again after them.
+    echo "-lm"
+    echo "-lc"
 } >"$OUT/engine-abi-link-$VARIANT.txt"
 echo "engine library $OUT/libengine-abi-$VARIANT.a ($(sha256sum "$OUT/libengine-abi-$VARIANT.a" | cut -c1-16)...), word circuits at $WORD_DIR"
