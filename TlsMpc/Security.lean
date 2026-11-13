@@ -101,6 +101,10 @@ import TlsMpc.Node.Flows.MasksHonest
 import TlsMpc.Node.Flows.MasksHides
 import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Flows.TlsProofs
+import TlsMpc.Node.Flows.TlsBounded
+import TlsMpc.Node.Flows.TlsClassSeal
+import TlsMpc.Node.Flows.TlsDerive
+import TlsMpc.Node.Flows.TlsT3
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6258,6 +6262,303 @@ theorem s12_tls_sealCtr_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (tr
 
 end FlowsS12
 
+/-! ### 7c (continued). S12 closed gaps: WF, the pipe, T4-TLS and P-GHASH through `jointRun`, value-level T3
+
+The second S12 pass (`TlsMpc/Node/Flows/{TlsWF,TlsBounded,TlsRun,TlsOpenRun,TlsGhashRun,TlsClassSeal,
+TlsDerive,TlsT3}.lean`; S12_NOTES.md, "Second pass"). Closes PROOF_GAPS F13, F14, F15, F16, F18, F20.
+Status letters as above (**M**: about the Lean model of the engines, `Engine/Model.lean`; the kernels'
+circuits computing their Lean definitions, `TlsBase.circuitOf` / `Ghash.GhashLoaded`, is T2's trust). -/
+
+section FlowsS12b
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+
+/-- **WF, the open** [M] (F14): the shell's `check` accepts every instruction of `openScript` on every
+branch (bit 0: the typed kernel's fields; bit 255: `tls-frame`; any other bit: abort), given the
+parser state and traffic block live and the three kernels' signatures. -/
+theorem s12_tls_open_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (parser traffic : BoolH)
+    (seq tag recordPadded size : List (BitVec 8)) (cap halfSlot : Nat) (pm : List Mark) (hf : Fresh c n)
+    (hpn : parser.id < n) (htn : traffic.id < n) (hp : c.bool? parser = some ⟨pm, false⟩) (hpm : pm.length = 88)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hs : seq.length = 8)
+    (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2) (hcap : cap ≤ 65536)
+    (hcheck : sigs Tls.checkName = some ⟨8 * 116, List.replicate 8 .never⟩)
+    (htyped : sigs (Tls.typedName cap) = some ⟨8 * (82 + cap), Tls.typedMarks cap⟩)
+    (hframe : sigs (Tls.frameName cap) = some ⟨8 * (11 + (cap - 17)), Tls.frameMarks cap⟩) :
+    WF sigs c (Tls.openScript n parser traffic seq tag recordPadded size cap halfSlot) :=
+  Tls.openScript_wf sigs c n parser traffic seq tag recordPadded size cap halfSlot pm hf hpn htn hp hpm ht hs htag hr hz
+    hcap hcheck htyped hframe
+
+/-- **WF, the class seal** [M] (F14). -/
+theorem s12_tls_sealClass_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic content : BoolH)
+    (seq : List (BitVec 8)) (size : Nat) (cm : List Mark) (hf : Fresh c n) (htn : traffic.id < n) (hcn : content.id < n)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hc : c.bool? content = some ⟨cm, false⟩)
+    (hcm : cm.length = 8 * size) (hs : seq.length = 8) (hcap : Tls.capacity size ≤ 65536)
+    (hsig : sigs (Tls.sealClassName (Tls.capacity size)) = some ⟨8 * (70 + Tls.capacity size),
+      List.replicate (8 * (1 + 5 + Tls.capacity size + 1)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (Tls.sealClassScript n traffic content seq size) :=
+  Tls.sealClassScript_wf sigs c n traffic content seq size cm hf htn hcn ht hc hcm hs hcap hsig
+
+/-- **WF, a doubling round** [M] (F14): every input `once`, each mask reaching one copy. -/
+theorem s12_ghash_round_wf (sigs : Bytes → Option Sig) (ctx : Ctx) (n c leftSlot rightSlot maskSlot dst : Nat)
+    (hf : Fresh ctx n) (hsig : sigs Ghash.multiplyName = some ⟨8 * 80, List.replicate 128 .toB⟩) :
+    WF sigs ctx (Ghash.roundScript n c leftSlot rightSlot maskSlot dst) :=
+  Ghash.roundScript_wf sigs ctx n c leftSlot rightSlot maskSlot dst hf hsig
+
+/-- **WF, the server-byte reveal** [M] (F14). -/
+theorem s12_tls_reveal_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (length content : BoolH) (cap : Nat)
+    (lm cm : List Mark) (hf : Fresh c n) (hln : length.id < n) (hcn : content.id < n)
+    (hl : c.bool? length = some ⟨lm, false⟩) (hc : c.bool? content = some ⟨cm, false⟩)
+    (hlm : lm.length = 16) (hcm : cm.length = 8 * cap) (hcap : cap ≤ 65536)
+    (hsig : sigs (Tls.revealName cap) = some ⟨8 * (2 + cap), List.replicate (16 + 8 * cap) .pub⟩) :
+    WF sigs c (Tls.revealScript n length content cap) :=
+  Tls.revealScript_wf sigs c n length content cap lm cm hf hln hcn hl hc hlm hcm hcap hsig
+
+/-- **WF, the handshake** [M] (F14): `tls-derive` (the agreement word consumed and freed). The parser,
+the handshake record, the Finished check, the client Finished and the agreement are
+`Tls.parserScript_wf`, `openHandshakeScript_wf`, `verifyScript_wf`, `finishScript_wf`, `agreeScript_wf`. -/
+theorem s12_tls_derive_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (agreement : BoolH) (helloHash : List (BitVec 8))
+    (hf : Fresh c n) (han : agreement.id < n)
+    (ha : c.bool? agreement = some ⟨List.replicate 255 .never, false⟩) (hh : helloHash.length = 32)
+    (hsig : sigs Tls.deriveName = some ⟨511, List.replicate 1216 .never⟩) :
+    WF sigs c (Tls.deriveScript n agreement helloHash) :=
+  Tls.deriveScript_wf sigs c n agreement helloHash hf han ha hh hsig
+
+/-- **WF, the client Finished** [M] (F14). -/
+theorem s12_tls_finish_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (main clientHs : BoolH)
+    (serverHash clientHash certificate : List (BitVec 8)) (hf : Fresh c n) (hmn : main.id < n) (hcn : clientHs.id < n)
+    (hm : c.bool? main = some ⟨List.replicate 256 .never, false⟩)
+    (hch : c.bool? clientHs = some ⟨List.replicate 480 .never, false⟩)
+    (hsh : serverHash.length = 32) (hchl : clientHash.length = 32) (hcert : certificate.length ≤ 16384)
+    (hsig : sigs (Tls.finishName certificate.length) = some ⟨8 * (156 + certificate.length),
+      List.replicate 960 .never ++ List.replicate (8 * Tls.finishedLength certificate.length) .pub⟩) :
+    WF sigs c (Tls.finishScript n main clientHs serverHash clientHash certificate) :=
+  Tls.finishScript_wf sigs c n main clientHs serverHash clientHash certificate hf hmn hcn hm hch hsh hchl hcert hsig
+
+/-- **The pipe, the open** [M] (F18): every instruction of `openScript` on every branch is
+`Instr.Bounded`, so the batch encoding round-trips (`nextBatch_bounded`). All 17 S12 scripts:
+`Tls.*_bounded`, `Ghash.keyShare_bounded`, `Ghash.round_bounded` (TlsBounded.lean). -/
+theorem s12_tls_open_bounded (n : Nat) (parser traffic : BoolH) (seq tag recordPadded size : List (BitVec 8))
+    (cap halfSlot : Nat) (hn : n + 16 < B64) (hp : parser.id < B64) (ht : traffic.id < B64) (hs : seq.length = 8)
+    (htag : tag.length = 16) (hr : recordPadded.length < 4294967296) (hz : size.length = 2) (hcap : cap < 4294967296) :
+    Every Instr.Bounded (Tls.openScript n parser traffic seq tag recordPadded size cap halfSlot) :=
+  Tls.open_bounded n parser traffic seq tag recordPadded size cap halfSlot hn hp ht hs htag hr hz hcap
+
+/-- **The pipe, a doubling round** [M] (F18). -/
+theorem s12_ghash_round_bounded (n c leftSlot rightSlot maskSlot dst : Nat) (hn : n + 7 < B64) :
+    Every Instr.Bounded (Ghash.roundScript n c leftSlot rightSlot maskSlot dst) :=
+  Ghash.round_bounded n c leftSlot rightSlot maskSlot dst hn
+
+/-- **T4-TLS for the seal, through `jointRun`** [M] (F13 (a)): two honest parties run the seal's first
+phase; each then computes its OWN half from its own shares over the opened header and ciphertext; the
+second phase returns to both a tag such that header ‖ ciphertext ‖ tag is `TlsRecord.sealCore` of the
+key, IV, sequence, content, kind and padding (P-GHASH (a) for the shares). -/
+theorem s12_tls_seal_honest (E : Env) (kind size padding : Nat)
+    (hctr : E.circuits (Tls.sealCtrName kind size padding) =
+      some (TlsBase.circuitOf (HybridKernel.tlsSealCtr kind size padding)))
+    (htag : E.circuits Tls.tagName = some (TlsBase.circuitOf HybridKernel.gcmTag))
+    (n m : Nat) (hm : n + 3 < m) (traffic content : BoolH) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (htn : traffic.id < n) (hcn : content.id < n)
+    (σA σB : Store) (I : Ideal) (hIt : I.bools traffic.id = some (bitsOf K)) (hIc : I.bools content.id = some (bitsOf C))
+    (halfSlot : Nat) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) :
+    let hc := (kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))).take
+      (5 + Tls.innerLength size padding)
+    ∃ J, Run.JRet (jointRun E (Tls.sealCtrScript n traffic content seqB kind size padding)
+        (Tls.sealCtrScript n traffic content seqB kind size padding) σA σB I) (hc, ⟨n + 3⟩) (hc, ⟨n + 3⟩) J σA σB ∧
+      ∀ σA' σB' : Store,
+        σA'.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half a (hc.take 5) (hc.drop 5)) →
+        σB'.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half b (hc.take 5) (hc.drop 5)) →
+        ∃ J' tag, Run.JRet (jointRun E (Tls.tagScript m ⟨n + 3⟩ halfSlot) (Tls.tagScript m ⟨n + 3⟩ halfSlot) σA' σB' J)
+            tag tag J' σA' σB' ∧
+          hc ++ tag = TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding :=
+  Tls.seal_honest E kind size padding hctr htag n m hm traffic content K seqB C hK hs hC htn hcn σA σB I hIt hIc
+    halfSlot a b nPow hsh hn
+
+/-- **The binding the vectors only tested** [K] (F13 (b)): the byte `openScript` binds to
+`tls-open-typed`'s `accepted` input is `gcm-check`'s output on the two halves, and with honest halves
+of shared key powers it is 255 exactly when the received tag is GCM's tag. -/
+theorem s12_tls_open_binding_honest (cap : Nat) (P K seqB recordPadded size hdr ct tag : List (BitVec 8))
+    (hP : P.length = 11) (hK : K.length = 60) (hs : seqB.length = 8) (hr : recordPadded.length = cap)
+    (hz : size.length = 2) (ht : tag.length = 16) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow) :
+    (HybridKernel.lookup (TypedOpenKernel.typedInputs cap) "accepted").map (BVExpr.eval (assignOf
+      (Tls.typedInput P K seqB recordPadded size (kernelOut HybridKernel.gcmCheck
+        (Tls.checkInput K seqB (Local.Ghash.half a hdr ct) (Local.Ghash.half b hdr ct) tag))))) =
+      [if Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB) = tag
+        then 255 else 0] :=
+  Tls.open_binding_honest cap P K seqB recordPadded size hdr ct tag hP hK hs hr hz ht a b nPow hsh hn
+
+/-- **T4-TLS for the open, through `jointRun`** [M] (F13 (b)): two honest parties' run of `openScript`
+RETURNS the same opening to both, and whichever handshake bit was opened, the event and the values
+behind the parser, length and content handles are exactly the four fields of the single class kernel
+`tls-open-application-class CAP` (`classSpec`: the post-handshake parser on the record's parse). -/
+theorem s12_tls_open_class (E : Env) (cap : Nat)
+    (hcE : E.circuits Tls.checkName = some (TlsBase.circuitOf HybridKernel.gcmCheck))
+    (htE : E.circuits (Tls.typedName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsOpenTyped cap)))
+    (hfE : E.circuits (Tls.frameName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsFrame cap)))
+    (n : Nat) (hcap : 21 ≤ cap) (parser traffic : BoolH) (hpn : parser.id < n) (htn : traffic.id < n)
+    (P K seqB tag recordPadded size : List (BitVec 8)) (hP : P.length = 11) (hK : K.length = 60)
+    (hs : seqB.length = 8) (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2)
+    (halfSlot : Nat) (σA σB : Store) (I : Ideal) (hIp : I.bools parser.id = some (bitsOf P))
+    (hIt : I.bools traffic.id = some (bitsOf K)) (xa xb : BitVec 128)
+    (hA : σA.bits halfSlot = TlsBase.bitsOfW xa) (hB : σB.bits halfSlot = TlsBase.bitsOfW xb) :
+    ∃ o J, Run.JRet (jointRun E (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot)
+        (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot) σA σB I) o o J σA σB ∧
+      ∃ vp vl vc, J.bools o.parser.id = some (bitsOf vp) ∧ J.bools o.length.id = some (bitsOf vl) ∧
+        J.bools o.content.id = some (bitsOf vc) ∧
+        [o.event, vp, vl, vc] = TypedOpenKernel.fields (TypedOpenKernel.classSpec cap (assignOf (Tls.typedInput P K seqB
+          recordPadded size (kernelOut HybridKernel.gcmCheck (Tls.checkInput K seqB xa xb tag))))) :=
+  Tls.open_class E cap hcE htE hfE n hcap parser traffic hpn htn P K seqB tag recordPadded size hP hK hs htag hr hz
+    halfSlot σA σB I hIp hIt xa xb hA hB
+
+/-- **A forged record, through `jointRun`** [M] (F13 (b)): with honest halves and a tag that is not
+GCM's, the run returns the event `[0, 0]` after the bit 0. -/
+theorem s12_tls_open_rejected_run (E : Env) (cap : Nat)
+    (hcE : E.circuits Tls.checkName = some (TlsBase.circuitOf HybridKernel.gcmCheck))
+    (htE : E.circuits (Tls.typedName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsOpenTyped cap)))
+    (hfE : E.circuits (Tls.frameName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsFrame cap)))
+    (n : Nat) (hcap : 21 ≤ cap) (parser traffic : BoolH) (hpn : parser.id < n) (htn : traffic.id < n)
+    (P K seqB tag recordPadded size : List (BitVec 8)) (hP : P.length = 11) (hK : K.length = 60)
+    (hs : seqB.length = 8) (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2)
+    (halfSlot : Nat) (σA σB : Store) (I : Ideal) (hIp : I.bools parser.id = some (bitsOf P))
+    (hIt : I.bools traffic.id = some (bitsOf K)) (hdr ct : List (BitVec 8)) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow)
+    (hA : σA.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half a hdr ct))
+    (hB : σB.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half b hdr ct))
+    (hforged : Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB) ≠ tag) :
+    ∃ o J, Run.JRet (jointRun E (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot)
+        (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot) σA σB I) o o J σA σB ∧
+      o.event = [0, 0] ∧
+      (Tls.openOut cap P K seqB tag recordPadded size (Local.Ghash.half a hdr ct) (Local.Ghash.half b hdr ct)).take 1 = [0] :=
+  Tls.open_rejected_run E cap hcE htE hfE n hcap parser traffic hpn htn P K seqB tag recordPadded size hP hK hs htag
+    hr hz halfSlot σA σB I hIp hIt hdr ct a b nPow hsh hn hA hB hforged
+
+/-- **P-GHASH (a) over a whole `ensure`, through `jointRun`** [M] (F20): after the first resharing and
+any sequence of doubling rounds (and the local square), each a returning joint run of the scripts,
+the two parties' share lists are XOR shares of H¹ … Hⁿ for the traffic block's GHASH key. -/
+theorem s12_ghash_ensure_shared (E : Env) (hE : Ghash.GhashLoaded E) (K : List (BitVec 8)) (hK : K.length = 60)
+    (a b : List (BitVec 128)) (h : Ghash.EnsureRuns E K a b) :
+    Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) a.length :=
+  Ghash.ensure_shared E hE K hK a b h
+
+/-- **Value-level T3 for a round, A honest** [M] (F20): against any adversary B, B's view of a round is
+at most one `ghashMaskedPower` release whose value is, copy by copy, `gcm-multiply` on A's inputs,
+B's chosen inputs and A's fresh mask `j` (with `s12_ghash_multiply_hides`: a bijection of the mask). -/
+theorem s12_ghash_round_disclosure_A (E : Env) (hE : Ghash.GhashLoaded E) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n c leftSlot rightSlot maskSlot dst : Nat) (hc : 0 < c ∧ c ≤ 1024)
+    (la mw : List (BitVec 128)) (ra : BitVec 128) (hla : la.length = c) (hmw : mw.length = c)
+    (hL : σ.bits leftSlot = TlsBase.bitsOfWs la) (hR : σ.bits rightSlot = TlsBase.bitsOfW ra)
+    (hM : σ.bits maskSlot = TlsBase.bitsOfWs mw) :
+    ∃ (lb : List (List (BitVec 8))) (rb : List (BitVec 8)), (∀ x ∈ lb, x.length = 16) ∧ lb.length = c ∧ rb.length = 16 ∧
+      (withAdv E .a adv (Ghash.roundScript n c leftSlot rightSlot maskSlot dst) σ I vD).viewD <+:
+        [⟨Ghash.masked, .bits (bitsOf ((List.range c).map fun j => kernelOut HybridKernel.gcmMultiply
+          (Local.Ghash.toBytes (la.getD j 0) ++ lb.getD j [] ++ Local.Ghash.toBytes ra ++ rb ++
+            Local.Ghash.toBytes (mw.getD j 0))).flatten)⟩] :=
+  Ghash.round_disclosure_A E hE adv σ I vD n c leftSlot rightSlot maskSlot dst hc la mw ra hla hmw hL hR hM
+
+/-- **P-GHASH (e) for the seal** [K] (F20): a half that deviates by a nonzero δ makes the record the
+parties produce NOT `TlsRecord.sealCore` (the server rejects it). -/
+theorem s12_ghash_seal_deviation_rejected (kind size padding : Nat) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) (δ : BitVec 128) (hδ : δ ≠ 0) :
+    let out := kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))
+    let hc := out.take (5 + Tls.innerLength size padding)
+    let pad := (out.drop (5 + Tls.innerLength size padding)).take 16
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5)) ++
+        Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5) ^^^ δ))) ≠
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding :=
+  Ghash.seal_deviation_rejected kind size padding K seqB C hK hs hC a b nPow hsh hn δ hδ
+
+/-- **P-GHASH (e) for the open** [K] (F20): a half that deviates by a nonzero δ makes the tag check
+refuse the GENUINE tag. -/
+theorem s12_ghash_check_deviation (K seqB hdr ct : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (a b : List (BitVec 128)) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow) (δ : BitVec 128) (hδ : δ ≠ 0) :
+    kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes (Local.Ghash.half a hdr ct) ++
+        (Local.Ghash.toBytes (Local.Ghash.half b hdr ct ^^^ δ) ++
+          Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB))))) = [0] :=
+  Ghash.check_deviation K seqB hdr ct hK hs a b nPow hsh hn δ hδ
+
+/-- **The class seal's composition** [K] (F16): through `sealClassScript`'s layout the acceptance byte
+is 255 and header ‖ ciphertext with the tag on its pad and honest halves is the exact-size record
+`TlsRecord.sealCore … C 23 0`. -/
+theorem s12_tls_sealClass_is_record (size : Nat) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (hb : Tls.capacity size + 17 < 65536) (a b : List (BitVec 128))
+    (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (size + 1) ≤ nPow) :
+    let out := kernelOut (RecordClassKernel.tlsSealClass (Tls.capacity size))
+      (K ++ (seqB ++ (C ++ (List.replicate (Tls.capacity size - size) 0 ++ Tls.sizeBytes size))))
+    let opened := out.take (1 + 5 + Tls.capacity size + 1)
+    let hc := (opened.drop 1).take (5 + size + 1)
+    let pad := (out.drop (1 + 5 + Tls.capacity size + 1)).take 16
+    opened.take 1 = [255] ∧
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5)) ++
+        Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5)))) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C 23 0 :=
+  Tls.sealClass_is_record size K seqB C hK hs hC hb a b nPow hsh hn
+
+/-- **`deriveScript`'s value** [M] (F15): with the word input read through the shaped model circuit
+(`Tls.shapedCircuit`, as S13's), two honest parties' run returns the handshake traffic blocks and the
+main secret of the RFC 8446 schedule on the agreement's bytes and the hello hash. -/
+theorem s12_tls_derive_honest (E : Env)
+    (hE : E.circuits Tls.deriveName = some (Tls.shapedCircuit HybridKernel.tlsDerive (List.replicate 1216 .never)))
+    (n : Nat) (agreement : BoolH) (han : agreement.id < n) (aw : Bits) (haw : aw.length = 255) (H : List (BitVec 8))
+    (hH : H.length = 32) (σA σB : Store) (I : Ideal) (hIa : I.bools agreement.id = some aw) :
+    ∃ J, Run.JRet (jointRun E (Tls.deriveScript n agreement H) (Tls.deriveScript n agreement H) σA σB I)
+        ⟨⟨n + 3⟩, ⟨n + 4⟩, ⟨n + 5⟩⟩ ⟨⟨n + 3⟩, ⟨n + 4⟩, ⟨n + 5⟩⟩ J σA σB ∧
+      J.bools (n + 3) = some (bitsOf (KernelSpecs.TlsHandshake.trafficBlockValue
+        (TlsKdf.handshakeSecrets Sha256.concrete (Tls.agreementBytes aw) H).client)) ∧
+      J.bools (n + 4) = some (bitsOf (KernelSpecs.TlsHandshake.trafficBlockValue
+        (TlsKdf.handshakeSecrets Sha256.concrete (Tls.agreementBytes aw) H).server)) ∧
+      J.bools (n + 5) = some (bitsOf (TlsKdf.handshakeSecrets Sha256.concrete (Tls.agreementBytes aw) H).main) ∧
+      J.bools agreement.id = none :=
+  Tls.derive_honest E hE n agreement han aw haw H hH σA σB I hIa
+
+/-- **Value-level T3, the seal's first phase** [M]: against any adversary, at most one `sealedRecord`
+release: the header ‖ ciphertext of `tls-seal-ctr` (the pad stays private). -/
+theorem s12_tls_sealCtr_disclosure (E : Env) (me : Party) (adv : Adversary) (kind size padding : Nat)
+    (hE : E.circuits (Tls.sealCtrName kind size padding) =
+      some (TlsBase.circuitOf (HybridKernel.tlsSealCtr kind size padding)))
+    (n : Nat) (traffic content : BoolH) (K seqB C : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hC : C.length = size) (htn : traffic.id < n) (hcn : content.id < n) (σ : Store) (I : Ideal) (vD : List Release)
+    (hIt : I.bools traffic.id = some (bitsOf K)) (hIc : I.bools content.id = some (bitsOf C)) :
+    (withAdv E me adv (Tls.sealCtrScript n traffic content seqB kind size padding) σ I vD).viewD <+:
+      [⟨Label.sealedRecord, .bits (bitsOf ((kernelOut (HybridKernel.tlsSealCtr kind size padding)
+        (K ++ (seqB ++ C))).take (5 + Tls.innerLength size padding)))⟩] :=
+  Tls.sealCtr_disclosure E me adv kind size padding hE n traffic content K seqB C hK hs hC htn hcn σ I vD hIt hIc
+
+/-- **Value-level T3, the open, A honest** [M]: against any adversary B (whatever 16 bytes `hb` it
+input as its half), at most two releases: the bit, which is 0 or 255, and the event, exactly the class
+kernel's event (`classSpec`), whichever branch ran. A refused record: `Tls.open_disclosure_rejected`. -/
+theorem s12_tls_open_disclosure_A (E : Env) (adv : Adversary) (cap : Nat)
+    (hcE : E.circuits Tls.checkName = some (TlsBase.circuitOf HybridKernel.gcmCheck))
+    (htE : E.circuits (Tls.typedName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsOpenTyped cap)))
+    (hfE : E.circuits (Tls.frameName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsFrame cap)))
+    (n : Nat) (hcap : 21 ≤ cap) (parser traffic : BoolH) (hpn : parser.id < n) (htn : traffic.id < n)
+    (P K seqB tag recordPadded size : List (BitVec 8)) (hP : P.length = 11) (hK : K.length = 60)
+    (hs : seqB.length = 8) (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2)
+    (halfSlot : Nat) (σ : Store) (I : Ideal) (vD : List Release) (hIp : I.bools parser.id = some (bitsOf P))
+    (hIt : I.bools traffic.id = some (bitsOf K)) (xa : BitVec 128) (hA : σ.bits halfSlot = TlsBase.bitsOfW xa) :
+    ∃ hb : List (BitVec 8), (hb.length = 16 ∧
+      ((kernelOut (TypedOpenKernel.tlsOpenTyped cap) (Tls.typedInput P K seqB recordPadded size
+        (kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag))))))).take 1 = [0] ∨
+       (kernelOut (TypedOpenKernel.tlsOpenTyped cap) (Tls.typedInput P K seqB recordPadded size
+        (kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag))))))).take 1 = [255])) ∧
+      (withAdv E .a adv (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot) σ I vD).viewD <+:
+        [⟨Label.recordKindBit, .bits (bitsOf ((kernelOut (TypedOpenKernel.tlsOpenTyped cap)
+            (Tls.typedInput P K seqB recordPadded size
+              (kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag))))))).take 1))⟩,
+         ⟨Label.recordEvent, .bits (bitsOf ((TypedOpenKernel.classSpec cap (assignOf (Tls.typedInput P K seqB
+            recordPadded size (kernelOut HybridKernel.gcmCheck
+              (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag)))))))).take 2))⟩] :=
+  Tls.open_disclosure_A E adv cap hcE htE hfE n hcap parser traffic hpn htn P K seqB tag recordPadded size hP hK hs htag
+    hr hz halfSlot σ I vD hIp hIt xa hA
+
+end FlowsS12b
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -6419,11 +6720,13 @@ the matching section above in the same commit.
   `s12_ghash_keyShare_shared`, `s12_ghash_round_shared`), (b) (`s12_ghash_halves_xor`), (c) for the
   Lean code (`s12_tls_seal_is_record`, `s12_tls_check_accepts`), (d) (`s12_ghash_keyShare_hides`,
   `s12_ghash_multiply_hides`, the views `s12_ghash_keyShare_viewD_B`, `s12_ghash_round_viewD_B`,
-  `s12_ghash_keyShare_disclosure_A`) proved in section 7c (S12). Open: (a) through `jointRun` for a
-  whole `ensure` (the per-round statements are at kernel level; the stand-in pair test checks a run);
-  (e) is `ghash_genuine_rejected` / `ghash_accept_unique_pad` (section 6c), not restated about the
-  scripts; `roundScript`'s WF; that the controller-side runner executes `TlsBackend.ensure` as
-  written (the runner does not exist yet).
+  `s12_ghash_keyShare_disclosure_A`) proved in section 7c (S12). Second S12 pass (section 7c
+  continued): (a) over a whole `ensure` through `jointRun` (`s12_ghash_ensure_shared`: the key share,
+  the local square and the doubling rounds, each a returning joint run of the scripts), (d) for a
+  round with A honest at value level against any adversary (`s12_ghash_round_disclosure_A`), (e) for
+  the scripts (`s12_ghash_seal_deviation_rejected`, `s12_ghash_check_deviation`), `roundScript`'s WF
+  (`s12_ghash_round_wf`). Open: that the controller-side runner executes `TlsBackend.ensure` as
+  written (the runner does not exist yet; `EnsureRuns` is the model of its steps).
 * **P-SPLIT** (split ECDH), **P-OFFSET** (offset agreement about `step`, incl. the digit
   recoding lemma), **P-HINT** (lift and tables, under H-QR). → **S11**.
 * `commit_open_sound`: proved for every S10 commit-then-open site (all are `Random.joint`; section
@@ -6439,8 +6742,15 @@ the matching section above in the same commit.
   (UPGRADE, CEREMONY). TLS (S12, section 7c): at the function level (each kernel's output read
   through the script's layout: `s12_tls_seal_is_record`, `s12_tls_check_accepts`,
   `s12_tls_open_event_refines`, `s12_tls_reveal_value`, `s12_tls_verify_value`,
-  `s12_tls_openHandshake_value`); not yet through `jointRun` (S12_NOTES.md, gaps), and the
-  derive step's agreement input is S11's (`TlsBackend.KeyAgreement`).
+  `s12_tls_openHandshake_value`); since the second S12 pass through `jointRun` for the seal
+  (`s12_tls_seal_honest`, the class seal's composition `s12_tls_sealClass_is_record`), the open
+  (`s12_tls_open_class`, `s12_tls_open_rejected_run`, the binding `s12_tls_open_binding_honest`) and
+  the derive step (`s12_tls_derive_honest`, the agreement word read through `Tls.shapedCircuit`; the
+  word itself is S11's, `TlsBackend.KeyAgreement`); value-level T3 against any adversary for the seal
+  and the open (`s12_tls_sealCtr_disclosure`, `Tls.tag_disclosure_A`, `s12_tls_open_disclosure_A`,
+  `Tls.open_disclosure_rejected`). Open for TLS: the handshake record / Finished / client Finished /
+  reveal / update scripts are at the function level (their WF is proved), T3 with B honest for the
+  open and the tag (symmetric scripts; not written), and the IO glue `TlsBackend` (F17).
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -7005,6 +7315,26 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s12_tls_openHandshake_value
 #print axioms TlsMpc.Security.s12_tls_window_bound
 #print axioms TlsMpc.Security.s12_tls_sealCtr_wf
+#print axioms TlsMpc.Security.s12_tls_open_wf
+#print axioms TlsMpc.Security.s12_tls_sealClass_wf
+#print axioms TlsMpc.Security.s12_ghash_round_wf
+#print axioms TlsMpc.Security.s12_tls_reveal_wf
+#print axioms TlsMpc.Security.s12_tls_derive_wf
+#print axioms TlsMpc.Security.s12_tls_finish_wf
+#print axioms TlsMpc.Security.s12_tls_open_bounded
+#print axioms TlsMpc.Security.s12_ghash_round_bounded
+#print axioms TlsMpc.Security.s12_tls_seal_honest
+#print axioms TlsMpc.Security.s12_tls_open_binding_honest
+#print axioms TlsMpc.Security.s12_tls_open_class
+#print axioms TlsMpc.Security.s12_tls_open_rejected_run
+#print axioms TlsMpc.Security.s12_ghash_ensure_shared
+#print axioms TlsMpc.Security.s12_ghash_round_disclosure_A
+#print axioms TlsMpc.Security.s12_ghash_seal_deviation_rejected
+#print axioms TlsMpc.Security.s12_ghash_check_deviation
+#print axioms TlsMpc.Security.s12_tls_sealClass_is_record
+#print axioms TlsMpc.Security.s12_tls_derive_honest
+#print axioms TlsMpc.Security.s12_tls_sealCtr_disclosure
+#print axioms TlsMpc.Security.s12_tls_open_disclosure_A
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
