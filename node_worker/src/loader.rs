@@ -202,6 +202,13 @@ fn body_of(total: u64) -> u64 {
     }
 }
 
+/// The receiver record's width in bytes, `receive-session`'s third output: `Receive.receiverBytes` in
+/// TlsMpc/Node/Flows/Receive.lean (the one definition the session script slices by; proved equal to
+/// the kernel's output width, `ReceiveFlowProofs.session_receiver_bits`). The test
+/// `receiver_bytes_is_the_scripts` reads it from the `layout receive-session receiver` line the S14
+/// vectors print from that definition (J21: this was 236, a slip in the kernels' documentation).
+pub const RECEIVER_BYTES: u64 = 200;
+
 /// Stage S14 (TlsMpc/Node/Flows/Receive.lean): the layout a receive script assumes for the kernel
 /// of this manifest name (the closed forms of `Receive.*Out` and the kernels' inputs,
 /// `ReceiveKernels.lean`): the input bits of one copy (`None`: not checked, the certificate's
@@ -240,7 +247,7 @@ pub fn receive_kernel_expected(name: &str) -> Option<(Option<u64>, Vec<(u64, Mar
             let ct = if *high == 0 { *low } else { low % 128 + 128 * high };
             let dh4 = if *one > 0 { w } else { 0 };
             let input = 8 * n + 8 + 8 + 256 + 256 + 136 + 128 + 8 + 3 * w + dh4 + 256 + 6 * w + 8 * cert + 128 + 64;
-            (Some(input), vec![(8, P), (conversation(*cert), N), (8 * 236, N), (8 * (8 + ct), N)])
+            (Some(input), vec![(8, P), (conversation(*cert), N), (8 * RECEIVER_BYTES, N), (8 * (8 + ct), N)])
         }
         ("receive-text", [ct, cap]) => (Some(8 * (8 + ct)), vec![(8, P), (16, P), (8 * cap, P), (24, P)]),
         ("receive-access-key", [cert, ct, _]) => (Some(conversation(*cert) + 8 * (8 + ct)), vec![(8, P), (conversation(*cert), N)]),
@@ -961,6 +968,25 @@ mod tests {
         for n in ["xeddsa-check", "xeddsa-recover", "receive-torsion"] {
             assert!(hex64(FIELD_PROGRAMS.iter().find(|p| p.name == n).unwrap().sha256), "{n}");
         }
+    }
+
+    #[test]
+    fn receiver_bytes_is_the_scripts() {
+        // J21: the session's receiver width is the Lean script's `Receive.receiverBytes`, printed by
+        // tests/lean/S14Vectors.lean into tests/s14_vectors.txt.
+        let text = include_str!("../tests/s14_vectors.txt");
+        let line = text.lines().find(|l| l.starts_with("layout receive-session receiver ")).expect("layout line");
+        assert_eq!(line.rsplit(' ').next().unwrap().parse::<u64>().unwrap(), RECEIVER_BYTES);
+        // A session kernel with the old 236-byte receiver is refused.
+        let name = "receive-session 260 1800 0 2 1 1 1 1 48 0 0 0";
+        let (input, mut fields) = receive_kernel_expected(name).unwrap();
+        fields[2].0 = 8 * 236;
+        let out_marks = fields.iter().flat_map(|(b, m)| std::iter::repeat_n(*m, *b as usize)).collect();
+        let mut k = Kernels::default();
+        k.insert(b"receive-certificate-verified", Kernel { flat: PathBuf::new(), sha256: String::new(),
+            sig: Sig { in_width: 8 + 512 + 3 * 255, out_marks: vec![Mark::Never; 8] } });
+        k.insert(name.as_bytes(), Kernel { flat: PathBuf::new(), sha256: String::new(), sig: Sig { in_width: input.unwrap(), out_marks } });
+        assert_eq!(receive_kernels_check(&k), vec![format!("{name}: signature")]);
     }
 
     #[test]

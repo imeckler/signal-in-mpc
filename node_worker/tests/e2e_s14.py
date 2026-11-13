@@ -45,6 +45,17 @@ def body_of(total):
     return sub(total, 4)
 
 
+def receiver_bytes():
+    """The receiver record's width the session script slices by: `Receive.receiverBytes` (Lean), printed by
+    tests/lean/S14Vectors.lean as `layout receive-session receiver N` into tests/s14_vectors.txt (J21: one
+    definition for the script and this check; it was a repeated 236, the kernels output 200)."""
+    for row in (ROOT / 'node_worker/tests/s14_vectors.txt').read_text().splitlines():
+        f = row.split(' ')
+        if f[:3] == ['layout', 'receive-session', 'receiver'] and len(f) == 4:
+            return int(f[3])
+    sys.exit('e2e_s14: tests/s14_vectors.txt has no `layout receive-session receiver` line (regenerate the vectors)')
+
+
 def expected(name):
     """(input bits or None, [(bits, mark)]) as loader.rs receive_kernel_expected; marks 0 never, 1 public."""
     stem, *a = name.split(' ')
@@ -81,7 +92,7 @@ def expected(name):
         ct = low if high == 0 else low % 128 + 128 * high
         dh4 = w if one > 0 else 0
         inp = 8 * n + 8 + 8 + 256 + 256 + 136 + 128 + 8 + 3 * w + dh4 + 256 + 6 * w + 8 * cert + 128 + 64
-        return inp, [(8, 1), (conv(cert), 0), (8 * 236, 0), (8 * (8 + ct), 0)]
+        return inp, [(8, 1), (conv(cert), 0), (8 * receiver_bytes(), 0), (8 * (8 + ct), 0)]
     if stem == 'receive-text' and len(a) == 2:
         return 8 * (8 + a[0]), [(8, 1), (16, 1), (8 * a[1], 1), (24, 1)]
     if stem == 'receive-access-key' and len(a) == 3:

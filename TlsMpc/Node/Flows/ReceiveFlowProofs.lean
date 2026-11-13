@@ -448,6 +448,58 @@ theorem certificateOut_sum : certificateOut.sum = 1166 := rfl
 
 theorem prekeyOpenOut_sum : prekeyOpenOut.sum = 13158 := rfl
 
+/-! ### The receiver record's width (J21)
+
+The session script slices `receive-session`'s outputs by `sessionOut`, whose third entry is
+`8 * Receive.receiverBytes`. These theorems compute the width of the kernel's own `receiver` output
+from its definition (`ReceiveFirst.session`'s third result): for any message long enough to hold
+the fields the record copies (any message whose prekey shape the earlier kernels accepted is far
+longer), it is exactly `8 * receiverBytes` = 1600 bits. Before J21 the script sliced 236 bytes. -/
+
+theorem keys_length {B W : Type} (s : Sha256.Ops B W) (dh1 dh2 dh3 oneTime kem ra sa : List B) :
+    (ReceiveFirst.keys s dh1 dh2 dh3 oneTime kem ra sa).length = 224 := by
+  simp [ReceiveFirst.keys, DhRatchet.materialFast_correct, DhRatchet.material_length,
+    PrivateInitialSpqrV1.chainStart, TlsKdf.expandFast_correct, TlsKdf.expandCore_length]
+
+theorem messageKeys_length {B W : Type} (s : Sha256.Ops B W) (chainKey salt : List B) :
+    (ReceiveFirst.messageKeys s chainKey salt).length = 112 := by
+  simp only [ReceiveFirst.messageKeys, Symmetric.deriveFast_correct, Symmetric.derive_bytes_length]
+
+theorem selectAt_length {B : Type} (a : ByteAuth.Ops B) (index : List B) (first : Nat) (values : List (List B))
+    (width : Nat) : (ReceiveFirst.selectAt a index first values width).length = width + 1 := by
+  simp [ReceiveFirst.selectAt]
+
+/-- **The session's receiver record has `receiverBytes` bytes**, for any operations (symbolic or
+concrete): root, chain, ratchet key, counter, PQ root, PQ chain, PQ index, base key. -/
+theorem session_receiver_length {B W : Type} (o : AesInverse.Ops B) (s : Sha256.Ops B W) (a : ByteAuth.Ops B)
+    (p : ReceiveFirst.PreKeyShape) (q : ReceiveFirst.SignalShape) (size jump : Nat)
+    (message checks senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement
+      sendAgreement ratchetPublic baseValid torsionX torsionY certificate accessKey requestId : List B)
+    (hm : message.length = size) (h1 : 36 ≤ p.signalSize size) (h2 : p.signalAt size + 36 ≤ size)
+    (h3 : p.keysAt + 35 ≤ size) :
+    ((ReceiveFirst.session o s a p q size jump message checks senderIdentity ourIdentity localAddress uuid device
+      dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic baseValid torsionX torsionY certificate
+      accessKey requestId).getD 2 []).length = receiverBytes := by
+  simp only [ReceiveFirst.session, List.getD_cons_succ, List.getD_cons_zero]
+  simp [ByteAuth.release, Establish.part, keys_length, messageKeys_length, selectAt_length, ChainSend.nextCounter,
+    ReceiveFirst.lit, hm, receiverBytes, receiverFields]
+  omega
+
+theorem session_message_length (cert size : Nat) (b : Bool) :
+    (HybridKernel.lookup (ReceiveKernel.sessionInputs cert size b) "message").length = size := by
+  simp [HybridKernel.lookup, HybridKernel.lookupFrom, ReceiveKernel.sessionInputs, ByteCircuit.inputBytes]
+
+/-- **J21: the slice the session script takes is the kernel's `receiver` output.** The third output
+field of `receive-session CERT N P R S K CW PW L0 L1 ADDR JUMP` (the kernel `ReceiveKernel.session`
+the flat emitter lowers) has exactly the width `sessionOut` gives it, `8 * receiverBytes`. -/
+theorem session_receiver_bits (cert size : Nat) (p : ReceiveFirst.PreKeyShape) (q : ReceiveFirst.SignalShape)
+    (jump : Nat) (h1 : 36 ≤ p.signalSize size) (h2 : p.signalAt size + 36 ≤ size) (h3 : p.keysAt + 35 ≤ size) :
+    ((ReceiveKernel.session cert size p q jump).outputs.map (·.bits)).getD 2 0 =
+      (sessionOut cert q.ciphertext).getD 2 0 := by
+  simp only [ReceiveKernel.session, List.map_cons, List.map_nil, List.getD_cons_succ, List.getD_cons_zero,
+    HybridKernel.priv, sessionOut]
+  rw [session_receiver_length (hm := session_message_length cert size _) (h1 := h1) (h2 := h2) (h3 := h3)]
+
 theorem kname_nil (s : String) : kname s [] = ascii s := rfl
 
 /-- `receive-certificate-verified`'s name has no parameter. -/

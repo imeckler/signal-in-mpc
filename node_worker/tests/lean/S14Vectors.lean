@@ -134,7 +134,7 @@ def kernelStandIn (accept : Bool) : String → List Nat → Option Circuit
     let q := if hi = 0 then lo else lo % 128 + 128 * hi
     some (fixed (8 * n + 8 + 8 + 256 + 256 + 136 + 128 + 8 + 3 * 255 + (if one > 0 then 255 else 0) + 256 + 6 * 255 +
       8 * c + 128 + 64)
-      [pb (b8 [255]), nv (pattern 10 (c + 319)), nv (zeros 236), nv (pattern 11 (8 + q))])
+      [pb (b8 [255]), nv (pattern 10 (c + 319)), nv (zeros receiverBytes), nv (pattern 11 (8 + q))])
   | "receive-text", [q, cp] =>
     some (fixed (8 * (8 + q)) [pb (b8 [255]), pb (b8 [0, 5]), pb (hello ++ zeros (cp - 5)), pb (b8 [255, 0, 0])])
   | "receive-access-key", [c, q, _] =>
@@ -336,6 +336,9 @@ def check (name : String) (ok : Bool) : String := s!"check {name} {if ok then "o
 
 def main : IO Unit := do
   IO.println (check "parameters" paramsOk)
+  -- J21: the receiver record's width the session script slices by (`Receive.receiverBytes`); the layout
+  -- checks (`e2e_s14.py`, `loader.rs` `RECEIVER_BYTES`) read it from this line.
+  IO.println s!"layout receive-session receiver {receiverBytes}"
   IO.println s!"info cert {cert} n {msgN} u {contentU} size {envSize} certLength {TlsMpc.ReceiveKernel.certLength c0 c1} contentOk {TlsMpc.ReceiveKernel.contentOk contentU cert false} msg {messageBytes contentU cert false}"
   for (name, p) in progTable do
     IO.println s!"prog {hex (ascii name)} {hex (ascii (TlsMpc.FieldDag.V3.render p))}"

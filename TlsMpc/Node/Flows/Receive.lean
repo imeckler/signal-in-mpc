@@ -131,9 +131,30 @@ ciphertext. -/
 def prekeyOpenOut : List Nat := [8, word, word, 32, 32, 32, 8 * 1568]
 /-- shape (opened, 13 bytes). -/
 def signalShapeOut : List Nat := [104]
-/-- status (opened), conversation, receiver, plaintext. -/
+/-- **The receiver record's fields** (bytes), in `ReceiveFirst.session`'s third result: session root
+32, next receiving chain key 32, their ratchet key 32, next receiving counter 4, post-quantum next root
+32, next post-quantum receiving chain key 32, post-quantum receiving index 4, their base key 32.
+
+J21 (PROOF_GAPS.md): the script used to slice by `ReceiveKernel.receiverBytes` = 236, which is wrong.
+That constant (and the "(236)" in the doc comments of `ReceiveFirst.session` and
+`ReceiveKernel.session`) is an arithmetic slip in the kernels' documentation: the eight fields the same
+comment lists sum to 200, the kernel's definition has always concatenated exactly these eight parts
+(since 9564a25, the commit that introduced it), and nothing in the kernels reads the constant. Those
+modules are in the flat emitter's import closure, so they are not edited; this definition outside the
+closure is THE width: the script slices by it (`sessionOut`), `ReceiveFlowProofs.session_receiver_bits`
+proves the kernel's `receiver` output has `8 * receiverBytes` bits, and the layout checks
+(`node_worker/tests/e2e_s14.py`, `loader.rs` `RECEIVER_BYTES`) read it from the `layout` line the S14
+vectors print from it. -/
+def receiverFields : List Nat := [32, 32, 32, 4, 32, 32, 4, 32]
+
+/-- The receiver record's size in bytes (`receiverFields`), 200. -/
+def receiverBytes : Nat := receiverFields.sum
+
+theorem receiverBytes_eq : receiverBytes = 200 := rfl
+
+/-- status (opened), conversation, receiver (`receiverBytes`, J21), plaintext. -/
 def sessionOut (cert ct : Nat) : List Nat :=
-  [8, 8 * TlsMpc.HybridKernel.conversationBytes cert 80, 8 * ReceiveKernel.receiverBytes, 8 * (8 + ct)]
+  [8, 8 * TlsMpc.HybridKernel.conversationBytes cert 80, 8 * receiverBytes, 8 * (8 + ct)]
 /-- status, length, text, layout (all opened). -/
 def textOut (cap : Nat) : List Nat := [8, 16, 8 * cap, 24]
 /-- status (opened), conversation. -/
