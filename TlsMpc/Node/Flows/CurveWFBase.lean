@@ -490,6 +490,58 @@ theorem st_open (sigs : Bytes → Option Sig) {c : Ctx} {g : Nat → Option Mark
     obtain ⟨m, h1, h2⟩ := hx x hxm
     exact ⟨m, by rw [h.marks]; exact h1, h2⟩
 
+/-! ## Lists, exchanges -/
+
+theorem freeFs_append (a b : List FieldH) : freeFs (a ++ b) = freeFs a ++ freeFs b := List.map_append
+
+theorem getD_mem_or {α : Type} (l : List α) (i : Nat) (d : α) : l.getD i d ∈ l ∨ l.getD i d = d := by
+  rw [List.getD_eq_getElem?_getD]
+  by_cases h : i < l.length
+  · left
+    rw [List.getElem?_eq_getElem h]
+    exact List.getElem_mem h
+  · right
+    rw [List.getElem?_eq_none (by omega)]
+    rfl
+
+theorem getD_mem {α : Type} (l : List α) (i : Nat) (d : α) (h : i < l.length) : l.getD i d ∈ l := by
+  rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h]
+  exact List.getElem_mem h
+
+theorem mapM_some_length {α β : Type} (f : α → Option β) :
+    ∀ (l : List α) (r : List β), l.mapM f = some r → r.length = l.length
+  | [], r, h => by simp only [List.mapM_nil] at h; cases h; rfl
+  | a :: l, r, h => by
+    simp only [List.mapM_cons, Option.bind_eq_bind] at h
+    cases hb : f a with
+    | none => rw [hb] at h; cases h
+    | some b =>
+      rw [hb] at h
+      simp only [Option.bind_some] at h
+      cases hl : l.mapM f with
+      | none => rw [hl] at h; cases h
+      | some bs =>
+        rw [hl] at h
+        simp only [Option.bind_some, Option.pure_def, Option.some.injEq] at h
+        subst h
+        simp [mapM_some_length f l bs hl]
+
+theorem exchange_wfp (sigs : Bytes → Option Sig) (c : Ctx) (len : Nat) (l : Label) (p : Payload) (hl : l.code ≠ 0)
+    (h0 : 0 < len) (hm : len ≤ maxExchange) :
+    WFP sigs (fun c' _ => c' = c) c (Script.exchange len l p) := by
+  unfold Script.exchange
+  refine WFP.step c c (.bytes len) _ _ (by simp [check, InstrP.skel, InstrP.map, guard, hl, h0, hm]) fun r _ => ?_
+  cases r with
+  | exchanged s r => exact WFP.done _ _ rfl
+  | _ => exact WFP.abort _ _
+
+theorem ensure_wfp (sigs : Bytes → Option Sig) (c : Ctx) (b : Bool) (r : String) :
+    WFP sigs (fun c' _ => c' = c) c (Script.ensure b r) := by
+  unfold Script.ensure
+  split
+  · exact WFP.done _ _ rfl
+  · exact WFP.abort _ _
+
 /-! ## The curve programs' signatures -/
 
 /-- `a` public outputs, then `b` never-opened ones. -/
