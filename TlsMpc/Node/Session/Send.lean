@@ -1,4 +1,5 @@
 import TlsMpc.Signal.PrivateTextNotification
+import TlsMpc.Signal.PrivateTextNotificationPublic
 import TlsMpc.Signal.BundleResponse
 import TlsMpc.Node.Policy.Request
 import TlsMpc.Node.Session.Pool
@@ -46,13 +47,15 @@ def notify (ids : List Nat) (message : String) (timestamp : Nat) : SessionM (Lis
   let body := message.toUTF8.data.toList
   insist (0 < body.length && body.length ≤ 256) "notify message must be 1..256 bytes"
   insist (ids.all (· < 2 ^ 128)) "contact ids are u128"
-  -- The text is public, so the message content (protobuf, padding) is built here with the same
+  -- The text is public, so the message content (protobuf, padding) is built here: the value of the
   -- definition the private path compiles to a circuit (`PrivateTextNotification.buildPublic`: the
   -- smallest of the four size classes that holds the content; texts of at most 48 bytes get
-  -- exactly what `build` gave them).
+  -- exactly what `build` gave them), computed directly by `buildPublicFast`, PROVED equal to it
+  -- (`buildPublicFast_eq`; `Signal/PrivateTextNotificationPublic.lean`).
   ids.zipIdx.mapM (fun (contact, index) => do
-    -- (libsignal profile: the official padding, 80c − 1 bytes, `buildPublicOfficial`.)
-    let (classes, built) := ((if official then PrivateTextNotification.buildPublicOfficial else PrivateTextNotification.buildPublic)
+    -- (libsignal profile: the official padding, 80c − 1 bytes, `buildPublicOfficial`, computed by
+    -- `buildPublicOfficialFast`, `buildPublicOfficialFast_eq`.)
+    let (classes, built) := ((if official then PrivateTextNotification.buildPublicOfficialFast else PrivateTextNotification.buildPublicFast)
       4 (toBits body) (toBits (uint 8 (timestamp + index)))).getD (0, [])
     insist (1 ≤ classes && classes ≤ 4 && built.length == (if official then 9 else 10) + 80 * classes && built.head? == some 255) "message text rejected"
     if official then modify fun st => { st with bodies := (toBytes built, body) :: st.bodies }
@@ -96,7 +99,8 @@ def restamp (send : Nat × Bytes) : SessionM (Nat × Bytes) := do
     let _ ← Flow.Curve.prepareContacts c.w [send.1]
   let now := max (← agreedNow) ((← get).lastStamp + 1)
   modify fun st => { st with lastStamp := now }
-  let some (_, built) := PrivateTextNotification.buildPublicOfficial 4 (toBits body) (toBits (uint 8 now)) | throw "message text rejected"
+  -- (`buildPublicOfficial`, computed by `buildPublicOfficialFast`: `buildPublicOfficialFast_eq`.)
+  let some (_, built) := PrivateTextNotification.buildPublicOfficialFast 4 (toBits body) (toBits (uint 8 now)) | throw "message text rejected"
   insist (built.length == send.2.length) "a new timestamp changed the message's size class"
   modify fun st => { st with stamped := toBytes built :: st.stamped }
   pure (send.1, toBytes built)
