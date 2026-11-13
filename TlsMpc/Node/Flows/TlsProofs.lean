@@ -21,7 +21,8 @@ kernel's theorem read through the script's layout.
     zeros above; all zeros past the capacity).
   Handshake: `openHandshake_value` (`tlsOpenHandshake_spec`), `verify_value`
     (`tlsVerifyFinished_spec`), `finish_value` (`tlsFinish_spec`).
-  WF: `tagScript_wf`, `updateScript_wf`, `publicScript_wf`, `rangeScript_wf`, `dropScript_wf`.
+  WF: `sealCtrScript_wf`, `tagScript_wf`, `updateScript_wf`, `publicScript_wf`, `rangeScript_wf`,
+    `dropScript_wf`.
 -/
 
 namespace TlsMpc.Node.Flows.Tls
@@ -426,6 +427,88 @@ theorem rangeScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (bytes 
     rfl)]
   intro b _
   exact WF_seq sigs _ _ _ _ (check_freeBool' sigs (by rw [bool?_push_self]; rfl)) (WF.done _ _)
+
+/-- **`sealCtrScript` is well formed** (the seal's first phase): the traffic block (480 private bits)
+and the content (`8 · size` bits, any marks) live and not once, the counter fresh, `tls-seal-ctr`'s
+signature (inputs 68 + size bytes; header and ciphertext public, the pad private). -/
+theorem sealCtrScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic content : BoolH) (seq : B8)
+    (kind size padding : Nat) (cm : List Mark) (hf : Fresh c n) (htn : traffic.id < n) (hcn : content.id < n)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hc : c.bool? content = some ⟨cm, false⟩)
+    (hcm : cm.length = 8 * size) (hs : seq.length = 8) (hsize : size + 1 + padding ≤ 16385)
+    (hsig : sigs (sealCtrName kind size padding) =
+      some ⟨8 * (68 + size), List.replicate (8 * (5 + innerLength size padding)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (sealCtrScript n traffic content seq kind size padding) := by
+  unfold sealCtrScript
+  simp only [seqs_cons, seqs_nil]
+  have t0 : traffic.id ≠ n := by omega
+  have c0 : content.id ≠ n := by omega
+  have hwM := maxWidth_eq
+  refine WF_seq sigs c _ _ _ (check_boolPublic sigs hf _ (by simp [hs, hwM])) ?_
+  have hf1 := hf.push n (Nat.le_refl n) ⟨List.replicate (bitsOf seq).length .pub, false⟩
+  refine WF_seq sigs _ _ _ _ (check_concat sigs
+    (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ t0).trans ht) rfl)
+      (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl)
+        (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ c0).trans hc) rfl) (useBools_nil _)))) hf1
+    (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+          List.length_append, List.length_replicate, length_bitsOf, hs, hcm, hwM]; omega)) ?_
+  have hf2 := hf1.push (n + 1) (Nat.le_refl _) ⟨(List.map BoolInfo.marks [⟨List.replicate 480 Mark.never, false⟩,
+    ⟨List.replicate (bitsOf seq).length .pub, false⟩, ⟨cm, false⟩]).flatten, false⟩
+  refine WF_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
+    (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+          List.length_append, List.length_replicate, length_bitsOf, hs, hcm]; omega) hf2 (by decide)
+    (by simp only [List.length_append, List.length_replicate, innerLength, hwM]; omega)) ?_
+  have hL : (List.replicate 1 (List.replicate (8 * (5 + innerLength size padding)) Mark.pub ++
+      List.replicate 128 Mark.never)).flatten =
+      List.replicate (8 * (5 + innerLength size padding)) Mark.pub ++ List.replicate 128 Mark.never := by simp
+  have hf3 := hf2.push (n + 2) (Nat.le_refl _) ⟨(List.replicate 1 (List.replicate (8 * (5 + innerLength size padding))
+    Mark.pub ++ List.replicate 128 Mark.never)).flatten, false⟩
+  refine WF_seq sigs _ _ _ _ (check_slice sigs (useBool_keep (bool?_push_self _ _ _) rfl)
+    (by simp only [hL, List.length_append, List.length_replicate]; omega) hf3 (by rw [hwM]; omega)) ?_
+  have hf4 := hf3.push (n + 3) (Nat.le_refl _) ⟨((List.replicate 1 (List.replicate (8 * (5 + innerLength size padding))
+    Mark.pub ++ List.replicate 128 Mark.never)).flatten.drop (8 * (5 + innerLength size padding))).take
+      (8 * (5 + innerLength size padding + 16) - 8 * (5 + innerLength size padding)), false⟩
+  refine WF_seq sigs _ _ _ _ (check_slice sigs
+    (useBool_keep ((bool?_push_of_ne _ _ _ _ (show n + 2 ≠ n + 3 by omega)).trans (bool?_push_self _ _ _)) rfl)
+    (by simp only [hL, List.length_append, List.length_replicate]; omega) hf4
+    (by rw [hwM]; simp only [innerLength]; omega)) ?_
+  have a1 : n ≠ n + 1 := by omega
+  have a2 : n ≠ n + 2 := by omega
+  have a3 : n ≠ n + 3 := by omega
+  have a4 : n ≠ n + 4 := by omega
+  have b0 : n + 1 ≠ n := by omega
+  have b2 : n + 1 ≠ n + 2 := by omega
+  have b3 : n + 1 ≠ n + 3 := by omega
+  have b4 : n + 1 ≠ n + 4 := by omega
+  have c0 : n + 2 ≠ n := by omega
+  have c1 : n + 2 ≠ n + 1 := by omega
+  have c3 : n + 2 ≠ n + 3 := by omega
+  have c4 : n + 2 ≠ n + 4 := by omega
+  have d0 : n + 4 ≠ n := by omega
+  have d1 : n + 4 ≠ n + 1 := by omega
+  have d2 : n + 4 ≠ n + 2 := by omega
+  refine WF_seq sigs _ _ _ _ (check_freeBool sigs ((bool?_push_of_ne _ _ _ ⟨n⟩ a4).trans
+    ((bool?_push_of_ne _ _ _ ⟨n⟩ a3).trans ((bool?_push_of_ne _ _ _ ⟨n⟩ a2).trans
+      ((bool?_push_of_ne _ _ _ ⟨n⟩ a1).trans (bool?_push_self _ _ _)))))) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool sigs ((bool?_drop_of_ne _ _ ⟨n + 1⟩ b0).trans
+    ((bool?_push_of_ne _ _ _ ⟨n + 1⟩ b4).trans ((bool?_push_of_ne _ _ _ ⟨n + 1⟩ b3).trans
+      ((bool?_push_of_ne _ _ _ ⟨n + 1⟩ b2).trans (bool?_push_self _ _ _)))))) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool sigs ((bool?_drop_of_ne _ _ ⟨n + 2⟩ c1).trans
+    ((bool?_drop_of_ne _ _ ⟨n + 2⟩ c0).trans ((bool?_push_of_ne _ _ _ ⟨n + 2⟩ c4).trans
+      ((bool?_push_of_ne _ _ _ ⟨n + 2⟩ c3).trans (bool?_push_self _ _ _)))))) ?_
+  refine WF_openThen sigs _ _ _ _ ?_
+  rw [check_openBool sigs (by decide) (useBool_keep ((bool?_drop_of_ne _ _ ⟨n + 4⟩ d2).trans
+      ((bool?_drop_of_ne _ _ ⟨n + 4⟩ d1).trans ((bool?_drop_of_ne _ _ ⟨n + 4⟩ d0).trans
+        (bool?_push_self _ _ _)))) rfl) (by
+    rw [List.all_eq_true]
+    intro x hx
+    simp only [hL, List.drop_zero, Nat.sub_zero] at hx
+    rw [List.take_left' (by simp)] at hx
+    rw [(List.mem_replicate.mp hx).2]
+    rfl)]
+  intro b _
+  exact WF_seq sigs _ _ _ _ (check_freeBool sigs ((bool?_drop_of_ne _ _ ⟨n + 4⟩ d2).trans
+      ((bool?_drop_of_ne _ _ ⟨n + 4⟩ d1).trans ((bool?_drop_of_ne _ _ ⟨n + 4⟩ d0).trans
+        (bool?_push_self _ _ _))))) (WF.done _ _)
 
 /-- **`dropScript` is well formed** for distinct live handles. -/
 theorem dropScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (hs : List BoolH) (hn : (hs.map (·.id)).Nodup)

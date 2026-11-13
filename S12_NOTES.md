@@ -77,7 +77,7 @@ Join: `scriptBackend (r : Runner) (ka : KeyAgreement Curve.State) check refs`.
 
 ## What is proved, and what is not
 
-Restated in `TlsMpc/Security.lean` section 7c (17 entries, compiled standalone: standard axioms
+Restated in `TlsMpc/Security.lean` section 7c (18 entries, compiled standalone: standard axioms
 only; see "Checks"). In short:
 * P-GHASH (a): per round of the doubling schedule (`Local.Ghash.shared_extend`) and with the
   kernels' resharing (`Ghash.keyShare_shared`, `Ghash.round_shared`, from `gcmKeyShare_reshare` /
@@ -92,8 +92,8 @@ only; see "Checks"). In short:
   tag check, typed open (`open_event_refines` from `typed_pair_refines` + `class_fields`;
   `open_rejected` from `tlsOpenTyped_gated`), reveal (`reveal_value`, `range_value`), handshake
   (`openHandshake_value`, `verify_value`, `finish_value`).
-* WF: `keyShare_wf`, `tagScript_wf`, `updateScript_wf`, `publicScript_wf`, `rangeScript_wf`,
-  `dropScript_wf`. The window: `Window.push_bound`, `push_newest`, `push_partition`;
+* WF: `keyShare_wf`, `sealCtrScript_wf`, `tagScript_wf`, `updateScript_wf`, `publicScript_wf`,
+  `rangeScript_wf`, `dropScript_wf`. The window: `Window.push_bound`, `push_newest`, `push_partition`;
   `Buffers.remove_gone`.
 * Open: see "New gaps" below.
 
@@ -154,7 +154,7 @@ C++ `gf_multiply` is a 128-step loop, Lean's interpreter is slower; compile the 
 
 ## Checks
 
-* `#print axioms` of the 17 section-7c entries (standalone file with the same text): `propext`,
+* `#print axioms` of the 18 section-7c entries (standalone file with the same text): `propext`,
   `Classical.choice`, `Quot.sound` only. `scripts/check_axioms.py` (all of Security.lean) NOT run: it
   needs `KernelSpecs/SlotEncoders` rebuilt, over this stage's 4 GB cap (as S10).
 * `scripts/lint_node.py`: 0 findings.
@@ -164,7 +164,7 @@ C++ `gf_multiply` is a 128-step loop, Lean's interpreter is slower; compile the 
 | # | Gap | Status |
 |---|---|---|
 | F13 | S12: T4-TLS is at the function level (kernel outputs read through the script's layout), not through `jointRun` for the seal, open, reveal and handshake scripts; the binding of `gcm-check`'s output to `tls-open-typed`'s `accepted` input is by the script's concat order (the stand-in test exercises it), not a theorem. | open |
-| F14 | S12: WF proved for keyShare, tag, update, public, range, drop; not for `roundScript`, `sealCtrScript`, `sealClassScript`, `openScript`, `revealScript`, `parserScript`, the handshake scripts (the seal/open/GHASH ones pass `checkBatch` on the vectors; the handshake ones are untested). | tested / open |
+| F14 | S12: WF proved for keyShare, sealCtr, tag, update, public, range, drop; not for `roundScript`, `sealClassScript`, `openScript`, `revealScript`, `parserScript`, the handshake scripts (the seal/open/GHASH ones pass `checkBatch` on the vectors; the handshake ones are untested). | tested / open |
 | F15 | S12: `tls-derive` has a `.word` input: no model circuit for it (`circuitOf` covers byte inputs), so `deriveScript` has only `Reveals` (no value statement through the script); its correctness is `tlsDerive_spec` plus S11's agreement word. | open |
 | F16 | S12: `tls-seal-class` composition (the class seal's record = the exact-size `sealCore`) not stated through the script (`recordClass_sealCiphertext_padded` exists at kernel level). | open |
 | F17 | S12: `TlsBackend` (IO glue: `ensure`, the seal phases, the window, drop-after-seal, the reveal cache) is unverified Lean; `Runner` and `KeyAgreement` are parameters with written specifications only; nothing selects the backend yet. | open (engineering) |

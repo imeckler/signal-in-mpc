@@ -1716,7 +1716,7 @@ signature and specification the notes give for the join):
   honest: empty view; A honest: exactly the masked value); T3 kinds for every script (registered);
   T4-TLS at the function level (seal, tag check, typed open with `typed_pair_refines` /
   `class_fields` / `tlsOpenTyped_gated`, reveal, handshake record, Finished, client Finished); WF
-  for six scripts; the window. Restated in Security.lean section 7c. Open: T4 through `jointRun`,
+  for seven scripts (the seal's two phases among them); the window. Restated in Security.lean section 7c. Open: T4 through `jointRun`,
   WF for the open/seal/round/handshake scripts (the vectors pass `checkBatch`), the derive script's
   word input, the class seal's composition (S12_NOTES.md, gaps F13-F21).
 - No new kind (all S12 kinds existed); labels for kinds 2-9 added in `Engine/Labels.lean`.

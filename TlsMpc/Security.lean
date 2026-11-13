@@ -5954,6 +5954,19 @@ theorem s12_tls_openHandshake_value (size : Nat) (S seqB record : List (BitVec 8
 theorem s12_tls_window_bound (w : Tls.Window) (id : Nat) : (w.push id).1.length ≤ Tls.keptRecords :=
   Tls.Window.push_bound w id
 
+/-- **The seal's first phase is well formed** [K]: the shell's `check` accepts every instruction of
+`sealCtrScript` on every branch, given the traffic block and content live and `tls-seal-ctr`'s
+signature. -/
+theorem s12_tls_sealCtr_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic content : BoolH)
+    (seq : List (BitVec 8)) (kind size padding : Nat) (cm : List Mark) (hf : Fresh c n) (htn : traffic.id < n)
+    (hcn : content.id < n) (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩)
+    (hc : c.bool? content = some ⟨cm, false⟩) (hcm : cm.length = 8 * size) (hs : seq.length = 8)
+    (hsize : size + 1 + padding ≤ 16385)
+    (hsig : sigs (Tls.sealCtrName kind size padding) =
+      some ⟨8 * (68 + size), List.replicate (8 * (5 + Tls.innerLength size padding)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (Tls.sealCtrScript n traffic content seq kind size padding) :=
+  Tls.sealCtrScript_wf sigs c n traffic content seq kind size padding cm hf htn hcn ht hc hcm hs hsize hsig
+
 end FlowsS12
 
 /-! ## 8. NOT YET PROVED
@@ -6669,6 +6682,7 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s12_tls_verify_value
 #print axioms TlsMpc.Security.s12_tls_openHandshake_value
 #print axioms TlsMpc.Security.s12_tls_window_bound
+#print axioms TlsMpc.Security.s12_tls_sealCtr_wf
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

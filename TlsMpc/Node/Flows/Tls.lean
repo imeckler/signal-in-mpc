@@ -81,7 +81,8 @@ reveal, handshake and WF statements below are in `Flows/TlsProofs.lean`:
     (`tlsFinish_spec`: the record is the client Finished sealed under the client handshake key).
   Window: `Window.push_bound` (at most 64 kept), `Window.push_newest` (the newest is kept),
     `Window.push_partition` (kept and dropped are exactly the old ones and the new one).
-  WF: `tagScript_wf`, `updateScript_wf`, `publicScript_wf`, `rangeScript_wf`, `dropScript_wf`.
+  WF: `sealCtrScript_wf`, `tagScript_wf`, `updateScript_wf`, `publicScript_wf`, `rangeScript_wf`,
+    `dropScript_wf`.
 -/
 
 namespace TlsMpc.Node.Flows.Tls
