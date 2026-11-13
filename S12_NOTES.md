@@ -173,9 +173,49 @@ C++ `gf_multiply` is a 128-step loop, Lean's interpreter is slower; compile the 
 | F20 | S12: P-GHASH (e) (`genuine_rejected`, `accept_unique_pad`) not restated about the scripts; P-GHASH (a) over a whole `ensure` run through `jointRun` not proved (per round at kernel level); A-honest value-level T3 for `roundScript` not proved (hiding at the function level). | open |
 | F21 | S12: Security.lean as a whole not compiled on the branch (4 GB); section 7c compiled standalone. Labels' `kinds`/`all` grew: rebuild every importer after the merge. | pending check |
 
+## Second pass: gaps F13-F16, F18, F20 closed
+
+New files only (`TlsMpc/Node/Flows/`), each compiled on its own, standard axioms (`#print axioms` in a
+scratch file and in the standalone Security check):
+
+| File | What |
+|---|---|
+| `TlsWF.lean` | F14: `parserScript_wf`, `revealScript_wf`, `openHandshakeScript_wf`, `verifyScript_wf`, `finishScript_wf`, `deriveScript_wf`, `agreeScript_wf`, `sealClassScript_wf` (`le_capacity`), `openScript_wf` (`directRest_wf`, `frameRest_wf`: every branch), `Ghash.roundScript_wf`. Three tactics (`fresh_tac`, `live_tac`, `len_tac`) discharge `check`'s side conditions on the symbolic context. Kernel signatures are hypotheses with explicit marks (`typedMarks`, `frameMarks`), as `sealCtrScript_wf`. |
+| `TlsBounded.lean` | F18: `Instr.Bounded` on every branch for all 17 S12 scripts (`Tls.*_bounded`, `Ghash.keyShare_bounded`, `Ghash.round_bounded`): handle block below 2^64, public sizes below 2^32. |
+| `TlsRun.lean` | F13 (a): `sealCtr_honest`, `tag_honest`, **`seal_honest`** (two honest parties through `jointRun`; each party's half from its OWN shares; header ‖ ciphertext ‖ tag = `TlsRecord.sealCore`). Generic ideal-state / local-step lemmas. |
+| `TlsOpenRun.lean` | F13 (b): output lengths of `tls-open-typed` / `tls-frame` (`parsed_length`, `typedOut_length`, `frameOut_eq`); **`open_binding`** (the `accepted` input of `tls-open-typed` IS `gcm-check`'s output, by the concat order) and `open_binding_honest` (255 exactly when the tag is right); `parser_honest`; **`open_class`** (the run returns; whichever bit, event and kept values = the class kernel's four fields); `open_rejected_run` (forged tag: bit 0, event [0, 0]). |
+| `TlsGhashRun.lean` | F20: `keyShare_honest`, `pick_layout`, `runCopies_blocks`, `round_honest`, **`EnsureRuns` / `ensure_shared`** (P-GHASH (a) over a whole `ensure` through `jointRun`); **`round_disclosure_A`** (value-level T3, A honest, any adversary B); P-GHASH (e): `tag_deviation`, `seal_deviation_rejected`, `check_deviation`. |
+| `TlsClassSeal.lean` | F16: `sealClass_kernelOut`, **`sealClass_is_record`** (the class script does not abort; its record = the exact-size `sealCore … 23 0`). |
+| `TlsDerive.lean` | F15: S13's `shapedCircuit` re-created minimally under `Tls` (same definitions); `agreementBytes`; `derive_out`; **`derive_honest`**. |
+| `TlsT3.lean` | Value-level T3 against ANY adversary: `sealCtr_disclosure`, `tag_disclosure_A`, **`open_disclosure_A`** (bit 0/255, event = the class kernel's), `open_disclosure_rejected`. |
+
+No counterexample was found; no script changed. Security.lean section 7c (continued): 20 entries
+(`s12_tls_open_wf` … `s12_tls_open_disclosure_A`), compiled standalone with the same text
+(`propext`, `Classical.choice`, `Quot.sound` only); Security.lean as a whole not compiled (F21).
+`scripts/lint_node.py`: 0 findings. The S10 branch (`s10-conversions`) was merged in for `RunAgree`'s
+`JRet` combinators (conflict only in Security.lean's `#print axioms` list; both sides kept).
+
+### Gaps after the second pass (PROOF_GAPS.md style)
+
+| # | Gap | Status |
+|---|---|---|
+| F13 | closed: `seal_honest`, `open_class`, `open_binding`, `open_binding_honest`, `open_rejected_run` (T4-TLS for the seal and the open through `jointRun`; the check/typed binding proved). | closed |
+| F13a | S12: the handshake record, Finished, client Finished, reveal, range and update scripts have WF and function-level values, not `jointRun` theorems (`derive_honest` done). | open (small) |
+| F14 | closed: WF for every S12 script (`TlsWF.lean`). | closed |
+| F14a | S12: the WF theorems take each kernel's signature as explicit marks; that they are `circuitOf`'s `kernelMarks` is not proved (the loader's `tls_script_kernels_check` compares them at start). | conditional |
+| F15 | closed: `derive_out`, `derive_honest` through `Tls.shapedCircuit` (S13's device, re-created; the two definitions coincide at the join). That `agreementBytes` of S11's word is the little-endian X25519 value is S11's (`Curve.agree`). | closed |
+| F16 | closed: `sealClass_is_record`. | closed |
+| F18 | closed: `*_bounded` for all S12 scripts (`TlsBounded.lean`). | closed |
+| F20 | closed: `ensure_shared` (P-GHASH (a) over a whole `ensure`, through `jointRun`), `round_disclosure_A` (+ `multiply_hides`), `round_viewD_B`, (e) `seal_deviation_rejected` / `check_deviation`. `EnsureRuns` models the steps of the IO `TlsBackend.ensure`; that the IO follows it is F17. | closed |
+| F20a | S12: value-level T3 with B honest for the open and the tag (the scripts are symmetric; only A honest is written). | open (small) |
+
 ## Merge notes: files touched
 
-* New Lean: `TlsMpc/Node/Local/Ghash.lean`, `TlsMpc/Node/Flows/{TlsBase,Ghash,Tls,TlsProofs,TlsBackend}.lean`.
+* New Lean: `TlsMpc/Node/Local/Ghash.lean`, `TlsMpc/Node/Flows/{TlsBase,Ghash,Tls,TlsProofs,TlsBackend}.lean`;
+  second pass: `TlsMpc/Node/Flows/{TlsWF,TlsBounded,TlsRun,TlsOpenRun,TlsGhashRun,TlsClassSeal,TlsDerive,TlsT3}.lean`
+  (Security.lean imports `TlsBounded`, `TlsClassSeal`, `TlsDerive`, `TlsT3`; section 7c continued).
+  `TlsDerive.lean` defines `Tls.packs`, `Tls.shapedAssign`, `Tls.shapedOut`, `Tls.shapedCircuit`, the same
+  definitions as S13's `Send.*` (different namespace: no clash; one can be replaced by the other).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (labels of the TLS kinds 2-9; `kinds`, `all`,
   `all_codes`), `TlsMpc/Node/Flows/Registry.lean` (imports `Flows.Tls`; S12 entries in `declared`;
   `s12_flows_reveal`), `TlsMpc/Security.lean` (imports `Flows.TlsProofs`; section 7c; the P-GHASH and
