@@ -3,6 +3,7 @@ import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Flows.Inversion
 import TlsMpc.Node.Flows.Tls
+import TlsMpc.Node.Flows.RefreshFlowProofs
 
 /-!
 # The script flows against the reveal list and the pipe: one place for the registry checks
@@ -48,7 +49,12 @@ def declared : List (String × List RevealKind) :=
    ("Tls.open", Tls.openKinds), ("Tls.parser", []), ("Tls.update", []), ("Tls.reveal", Tls.revealKinds),
    ("Tls.range", Tls.revealKinds), ("Tls.public", []), ("Tls.drop", []), ("Tls.derive", []),
    ("Tls.openHandshake", Tls.handshakeKinds), ("Tls.verify", Tls.handshakeKinds),
-   ("Tls.finish", Tls.handshakeKinds), ("Tls.agree", [])]
+   ("Tls.finish", Tls.handshakeKinds), ("Tls.agree", []),
+   -- stage S15 (S11's curve parameter declares its own kinds, registered with S11)
+   ("Refresh.fetch", Refresh.fetchKinds), ("Refresh.take", []), ("Refresh.shape", Refresh.shapeKinds),
+   ("Refresh.parse", []), ("Refresh.challenges", []), ("Refresh.verify", Refresh.establishKinds),
+   ("Refresh.kem", []), ("Refresh.session", Refresh.establishKinds), ("Refresh.scratchSeal", Refresh.scratchKinds),
+   ("Refresh.drop", []), ("Refresh.commit", [])]
 
 /-- **The registry check**: every kind a script flow declares is one of the label registry's
 kinds (`Label.kinds`), whose labels are `Label.all`. -/
@@ -117,6 +123,25 @@ theorem s12_flows_reveal :
     Tls.open_reveals, Tls.parser_reveals, Tls.update_reveals, Tls.reveal_reveals, Tls.range_reveals,
     Tls.public_reveals, Tls.drop_reveals, Tls.derive_reveals, Tls.openHandshake_reveals, Tls.verify_reveals,
     Tls.finish_reveals, Tls.agree_reveals⟩
+
+/-- **Every S15 script flow declares its kinds** (on every branch, for every argument; the
+establishment's operation with S11's parameter: `Refresh.opEstablish_reveals`). -/
+theorem s15_flows_reveal :
+    (∀ n traffic state seq frame mask p u k,
+      Reveals Refresh.fetchKinds (Refresh.fetchScript n traffic state seq frame mask p u k)) ∧
+    (∀ n body content offset count, Reveals [] (Refresh.takeScript n body content offset count)) ∧
+    (∀ n body size, Reveals Refresh.shapeKinds (Refresh.shapeScript n body size)) ∧
+    (∀ n body total start w first last, Reveals [] (Refresh.parseScript n body total start w first last)) ∧
+    (∀ n fields l, Reveals [] (Refresh.challengeScript n fields l)) ∧
+    (∀ n state fields l r first, Reveals Refresh.establishKinds (Refresh.verifyScript n state fields l r first)) ∧
+    (∀ n acct reg parsed bound kem ag oneTime,
+      Reveals Refresh.establishKinds (Refresh.sessionScript n acct reg parsed bound kem ag oneTime)) ∧
+    (∀ n key cert ds version, Reveals Refresh.scratchKinds (Refresh.scratchSealScript n key cert ds version)) ∧
+    (∀ t st, Reveals [] (Refresh.opDrop t st).script) ∧
+    (∀ t st id, Reveals [] (Refresh.opCommit t st id).script) :=
+  ⟨Refresh.fetch_reveals, Refresh.take_reveals, Refresh.shape_reveals, Refresh.parse_reveals,
+    Refresh.challenge_reveals, Refresh.verify_reveals, Refresh.session_reveals, Refresh.scratchSeal_reveals,
+    Refresh.opDrop_reveals, Refresh.opCommit_reveals⟩
 
 /-- **Registered labels only**: in any run of a script that declares registered kinds, against any
 adversary, every release the adversary receives carries a label of `Label.all`. -/
@@ -424,5 +449,54 @@ theorem opWrite_bounded (c : Ctx) (t : Table) (id : Nat) (hash : Bytes → Bytes
       | some s =>
         exact writeScript_bounded _ _ _ _ _ _ k s _ (by simp only [Table.alloc_fst]; omega)
           (entry_bounded hI ht hf k (Entry.mem_key hk)) (entry_bounded hI ht hf s (Entry.mem_state hs))
+
+/-! ## S15: the refresh scripts' wires fit the pipe -/
+
+theorem length_shapeName (cap : Nat) : (Refresh.shapeName cap).length ≤ cap + 14 := by
+  have h1 := length_toString cap
+  have h2 : "bundle-shape".length = 12 := by decide
+  have h3 : " ".length = 1 := by decide
+  simp only [Refresh.shapeName, TlsBase.name1, length_ascii, String.length_append]
+  omega
+
+/-- **The take script's wires are bounded** (ids below 2^64; offsets below 2^32). -/
+theorem takeScript_bounded (n : Nat) (body : Option BoolH) (content : BoolH) (offset count : Nat)
+    (hn : n + 2 < B64) (hc : content.id < B64) (hb : ∀ b, body = some b → b.id < B64)
+    (ho : 8 * (offset + count) < 4294967296) : Every Instr.Bounded (Refresh.takeScript n body content offset count) := by
+  have hB := big_lt_B64
+  unfold Refresh.takeScript
+  split
+  · refine every_seqs (Every.done _) _ ?_
+    intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    subst hi
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank]
+    omega
+  · next b =>
+    have hb' := hb b rfl
+    refine every_seqs (Every.done _) _ ?_
+    intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    rcases hi with rfl | rfl | rfl | rfl <;>
+      simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank] <;> omega
+
+/-- **The shape script's wires are bounded.** -/
+theorem shapeScript_bounded (n : Nat) (body : BoolH) (size : Nat) (hn : n + 3 < B64) (hb : body.id < B64)
+    (hcap : 8 * Refresh.shapeCapacity size < 4294967296) :
+    Every Instr.Bounded (Refresh.shapeScript n body size) := by
+  have hB := big_lt_B64
+  have hname := length_shapeName (Refresh.shapeCapacity size)
+  refine every_seqs (every_openThen ?_ (fun b => every_seqs (Every.done _) _ ?_)) _ ?_
+  · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Label.bundleShape]
+    omega
+  · intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    subst hi
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank]
+    omega
+  · intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    rcases hi with rfl | rfl | rfl | rfl | rfl <;>
+      simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank] <;> omega
 
 end TlsMpc.Node.Flows.Registry
