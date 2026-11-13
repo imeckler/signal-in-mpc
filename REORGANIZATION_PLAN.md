@@ -1644,6 +1644,21 @@ mask pool meanwhile: **separate pools**):
 - Not run in the branch: `scripts/check_axioms.py` (rebuilding `KernelSpecs/SlotEncoders` for
   Security.lean's closure needs more than the 4 GB cap of this stage); the S10 restatements were
   checked in a standalone file (33 entries, standard axioms only).
+- **Follow-up (2026-11-12, same branch; proofs only, no script changed).** Closed: P-CUT (c)
+  composed with the model (`RunAgree.lean`; `generate_agree`; `generate_hides` in 7.0's form with
+  the bijection `reRand` and the bit-block move `moveRef` on [32, p)); (f), (g) at run level
+  (`finishPhase_sound`, `mask_consistent`); (a) for a whole honest run through `jointRun`, deployed
+  profiles included (`generate_honest_profile`); `generate_wf` (every deployed profile:
+  `profile_sizes`) and `sharedBits_wf`; P-BITS at run level (`sharedBits_sound`,
+  `sharedBits_honest`); P-B2F (a) through `jointRun` for the whole bundle (`b2f_honest`); the counting model's hypotheses as theorems (`generate_sound`: the bad set
+  is the other party's choice from its view before the run, (d), (e), (f); `bucket_uniform`) and the
+  two challenge permutations as the model's one arrangement (`arrangement_perm`). Still open:
+  `_wf` for `wordToField`, `fieldToWord`,
+  `bitsToField`, `Account.openStep`; a one-statement value disclosure (P-CUT (b)) for the whole
+  run; and, argued only, that the arrangement is uniform when the two permutations are and that the
+  permutations are uniform and independent of the bad set (probability; `IdealCommit`, SHA-256 as a
+  random oracle). Security.lean section 7b now has 51 entries, compiled on their own (standard
+  axioms only); `scripts/lint_node.py`: 0 findings.
 
 ---
 

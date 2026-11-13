@@ -61,48 +61,75 @@ deviation; `testParams_not_deployed`).
 
 ## What is proved, and what is not (P-CUT (c), (e), (g) in particular)
 
-See `TlsMpc/Security.lean` section 7b and the open list in section 8. In short:
+See `TlsMpc/Security.lean` section 7b (and "7b continued") and the open list in section 8. In short
+(the second engineer's follow-up of 2026-11-12 is marked FOLLOW-UP):
 * P-CHAL (a), (b), (c), `commit_open_sound`: proved (model).
-* P-CUT (a): protocol level (`honest_ok`, `honest_mask`, `honest_pair`); the run level is checked
-  executably by the vectors' `check mask … ok` / `check pairs ok` (Lean model, test parameters),
-  not proved for the whole `generate` run.
+* P-CUT (a): protocol level (`honest_ok`, `honest_mask`, `honest_pair`). FOLLOW-UP: the whole honest
+  run through `jointRun`, for every parameter set with 0 < M and bits ≤ N and so the deployed
+  profiles: `MasksHonest.lean` `generate_honest`, `generate_honest_profile` (both return the pool;
+  word mask j is (word ((rA c + rB c) mod p), that value as a field element); bit pair (j, i) is
+  bit_i(rA c) ⊕ bit_i(rB c) in both engines). Hypotheses: the challenges' commitments differ, their
+  expansions succeed, the bit blocks' references are at least 32.
 * P-CUT (b): `Reveals generateKinds` (labels, every run); the cut phase's disclosure with values
-  (`cutPhase_disclosure`); kept candidates never in the cut (`cut_disjoint`). Not done: a
-  value-level disclosure for the whole `generate` run (bucket/flag/bit-block phases).
-* P-CUT (c): the core lemma (`hiding_releases`: the cut and bucket releases and the word-mask flags
-  are unchanged under the shift that cancels in each bucket) and that the shift is a bijection
-  with any target reference reachable (`shift_shift`, `shift_ref`). Not done: the composition with
-  the model (that the adversary's whole view of `generate` is a function of these releases and the
-  challenges), and bit-block flags (the ≥ 32 condition must hold of the shifted reference).
-* P-CUT (d): protocol level (`cutCheck_iff`) and run level (`cutPhase_sound`).
-* P-CUT (e): protocol level exact (`bucketOk_iff`: for a canonical reference, pass ⟺
-  val(ref) + val(member) < 2p ∧ errors cancel mod p), the counting model's rule
-  (`bucket_mixed_fails`), the survivor corollary, and the run level (`bucketPhase_sound`).
-* P-CUT (f): the flags' meaning (`finalizeMask_flag`, `finalizeBits_flag`); the run level of the
-  flag phase is not proved (the vectors' `cheat-reference` case aborts there).
-* P-CUT (g): `bitBlock_unique` (with `FieldInverse`), protocol level; run level not proved (the
-  vectors' `cheat-nonbit` and `cheat-bitblock` abort there).
+  (`cutPhase_disclosure`); kept candidates never in the cut (`cut_disjoint`). The values every
+  phase opens are characterised in `MasksState.lean` (`Holds.cut`, `Holds.bucket`, `flagsOf`, `bitZ`)
+  and used by the hiding proof; not restated as one prefix-of-a-list disclosure theorem for the
+  whole run.
+* P-CUT (c): the core lemma (`hiding_releases`), `shift_shift`, `shift_ref`. FOLLOW-UP, the
+  composition with the model: `RunAgree.lean` (`Run.Agree`: two runs of a script against the same
+  adversary with the same views of both parties, trace, replies and result; proved combinator by
+  combinator), `MasksHiding.lean` `generate_agree` (two runs of `generate` agree when the honest
+  candidates differ by a change that is 0 on the cut, keeps every bucket pair's sum mod p, and
+  keeps "at least 32" of the bit blocks' references), `MasksHides.lean` `generate_hides` (plan 7.0's
+  form: `hideView δ r = hideView 0 (reRand π δ r)`), `reRand_inverse` / `reRand_lt` (the
+  re-randomisation is a bijection of the canonical candidate vectors; the re-randomised run reaches
+  the same challenges), `moveRef` (the bit-block case: a rotation of [32, p); `moveRef_32`,
+  `moveRef_neg`, `moveRef_reach_word`, `moveRef_reach_bits`). Scope: for fixed challenge randomness
+  of the honest party; a bit block's reference below 32 (probability 32/p) is not hidden (its run
+  aborts at the flags).
+* P-CUT (d): protocol level (`cutCheck_iff`) and run level (`cutPhase_sound`; FOLLOW-UP
+  `cutPhase_pass` for the candidates the engines hold).
+* P-CUT (e): protocol level exact (`bucketOk_iff`), the counting model's rule (`bucket_mixed_fails`),
+  the survivor corollary, and the run level (`bucketPhase_sound`; FOLLOW-UP `bucketPhase_pass`,
+  `bucket_uniform`).
+* P-CUT (f), (g): the flags' meaning (`finalizeMask_flag`, `finalizeBits_flag`), `bitBlock_unique`.
+  FOLLOW-UP, run level: `MasksSound.lean` `finishPhase_sound` (against any adversary, if the last
+  phase returns: every kept reference of both owners is canonical, at least 32 for bit blocks; the
+  word masks' handles hold `modAdd` of the references and the sum of their elements; with
+  `FieldInverse`, a bit block whose references have error 0 yields bit pairs equal to the XOR of
+  the references' bits in both engines), `mask_consistent`.
 * P-CUT (h): the pool (`takeWord_fresh`, `takeBits_fresh`, `takes_distinct`) and the frees.
 * P-W2F, P-F2W: (a) through `jointRun` (honest, run level), (b) bijections in 7.0's form, T3 with
   values against any adversary, (c) single use.
 * P-B2F: (a) per bit, (b), T3 (the opened value is the xor output after the block), (c).
-* P-BITS (a) (with `FieldInverse`), (b), (c), protocol level.
+  FOLLOW-UP: (a) through `jointRun` for the whole bundle, `ConvertRun.lean` `b2f_honest` (two
+  honest parties, consistent pairs on handles other than the script's own: both return `b2fOuts`,
+  stores unchanged, output i holds the field bit of x's bit i).
+* P-BITS (a) (with `FieldInverse`), (b), (c), protocol level. FOLLOW-UP, run level:
+  `ConvertRun.lean` `sharedBits_sound` (any adversary: every input of both parties is 0 or 1 and
+  the outputs are the field XORs) and `sharedBits_honest` (`jointRun`).
 * P-INV: T3 against any adversary (only z·m and the flag), (a) through `jointRun`, (b), (c), (d).
 * Op 55: `Reveals` (`blobAccepted`, `maskedBit`), `swapBits_spec`, pool freshness.
-* `_wf`: `challenge_wf` (every context) and `quotient_wf` (x, z live, fresh ids, the program
-  loaded). For `generate` and the conversions the shell's `check` admits every batch of the test
-  instance (the vectors' `verdict ok` on all batches, also asserted by `s10_pair.rs`); general WF
-  theorems for them are open.
+* `_wf`: `challenge_wf`, `quotient_wf`. FOLLOW-UP: `MasksWF.lean` `generate_wf` (from any context
+  where the Boolean ids from b and the field ids from f are fresh, with the circuits' and programs'
+  signatures and `Sizes p`; `profile_sizes`: every deployed profile; `generate_wf_profile`) and
+  `ConvertWF.lean` `sharedBits_wf`. Still open: `_wf` for `wordToField`, `fieldToWord`,
+  `bitsToField`, `Account.openStep` (the vectors admit every batch of the test instance).
 
-The correspondence with the Mathlib counting model (`proofs/TlsMpcProofs/CutAndChoose*.lean`):
-its "bad" set S is the candidates with error ≠ 0 (`Vals.err`), fixed before the challenge
-(`idealCommit`: inputs precede the challenges, and `challenge_seed_injective`); its assumption "a
-bad candidate in the cut aborts" is P-CUT (d) (`cutCheck_iff`, `cutPhase_sound`); its assumption
-"a bucket that mixes good and bad candidates aborts" is P-CUT (e) (`bucket_mixed_fails`, with a
-canonical reference; a non-canonical kept reference is caught by the flags, P-CUT (f)); its single
-uniform permutation models the two challenges (π₁ for the cut, π₂ for the buckets). The bijection
-forms of hiding here (P-W2F (b), P-F2W (b), P-B2F (b), P-INV (c)) are the ones `proofs/Hiding.lean`
-turns into distributions.
+The correspondence with the Mathlib counting model (`proofs/TlsMpcProofs/CutAndChoose*.lean`),
+FOLLOW-UP `MasksModel.lean`: `generate_sound` states the model's hypotheses for any run of
+`generate` that returns, against any adversary: the other party's candidates are
+`adv.act vD skeleton`, its choice from its view before the run, so the bad set (candidates with
+error ≠ 0, `Vals.err`) is fixed before the challenges exist (and the seeds are r ⊕ v with v
+committed first: `challenge_seed_injective` under `IdealCommit`); a bad candidate in the cut aborts
+(d); a mixed bucket aborts (e) (`bucket_uniform`); non-canonical kept references are caught by the
+flags (f). `arrangement π₁ π₂` (the cut, then the bucket slots in order) is ONE permutation of the
+candidates with the model's shape (`arrangement_perm`, `arrangement_cut`, `arrangement_slot`).
+STILL ARGUED, not proved (no probability in the main package): that the arrangement is uniform
+when π₁ and π₂ are (K!-to-one), and that π₁, π₂ are uniform and independent of the bad set
+(`IdealCommit`; SHA-256 in `permOf` as a random oracle; the 2⁻⁶⁴⁰ rejection abort). The bijection
+forms of hiding here (`generate_hides`, P-W2F (b), P-F2W (b), P-B2F (b), P-INV (c)) are the ones
+`proofs/Hiding.lean` turns into distributions.
 
 ## Kinds
 
@@ -157,6 +184,15 @@ A round is one batch with a data reply (an agreement plus one message delay; pla
 ## Merge notes: files touched
 
 * New Lean: `TlsMpc/Node/Flows/{Challenge,ConvertBase,RunLemmas,Masks,MasksProofs,MasksRun,Convert,Inversion}.lean`.
+* New Lean (follow-up, proofs only; no script changed, so the vectors and `s10_pair.rs` are as
+  they were): `TlsMpc/Node/Flows/{RunAgree,MasksState,MasksHiding,MasksHides,MasksSound,MasksHonest,MasksModel,MasksWF,ConvertWF,ConvertRun}.lean`;
+  `TlsMpc/Security.lean` imports `MasksHides`, `MasksHonest`, `MasksModel`, `MasksWF`, `ConvertWF`,
+  `ConvertRun` (section 7b continued: 16 more entries, 50 in all; compiled on their own with their
+  `#print axioms`: standard axioms only; the full `check_axioms.py` still needs more than 4 GB on
+  this branch).
+* Proof-engineering notes: `omega` hits the recursion limit on goals with multiples of 255 or 510
+  (use `Nat.mul_le_mul_*` chains); a definitional unfolding of `Ctx.defFields` or `setFields` over
+  `List.range 255` exhausts memory (state such steps for an abstract length: `defFields_two`).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (labels and `all_codes`),
   `TlsMpc/Node/Flows/Account.lean` (op 55; imports `Convert`), `TlsMpc/Node/Flows/Registry.lean`
   (S10 kinds), `TlsMpc/Security.lean` (section 7b, the open list), `REORGANIZATION_PLAN.md` (S10
