@@ -1,0 +1,19 @@
+[package]
+name = "node-stock"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "X1: the encrypted on-disk stock of message-independent preprocessing, used exactly once (STOCK.md; Lean model TlsMpc/Node/Stock)"
+
+# Offline, from the vendored crate set the other tools use (see .cargo/config.toml).
+[dependencies]
+sha2 = "=0.11.0"
+hmac = "=0.13.0"
+chacha20poly1305 = { version = "=0.11.0", default-features = false }
+zeroize = "=1.9.0"
+
+[lib]
+name = "node_stock"
+path = "src/lib.rs"
+
+[workspace]
