@@ -314,6 +314,93 @@ theorem ret_step {α : Type} (i : Instr) (k : Reply → Script α) (σ : Store) 
         intro h
         exact ⟨w, part, I1, toH, toD, hw, hst, h⟩
 
+/-- `ret_step`, with the contribution the adversary made: its choice from its view so far (and
+the honest party's early release of this step, if any). -/
+theorem ret_step_act {α : Type} (i : Instr) (k : Reply → Script α) (σ : Store) (I : Ideal) (vD : List Release)
+    (x : α) (J : Ideal) (h : Ret (withAdv E me adv (.step i k) σ I vD) x J) :
+    ∃ w part I1 toH toD, fill E.hash me σ i = some w ∧ adv.act (vD ++ w.early.toList) i.skel = some part ∧
+      idealStep E me w part I = some (I1, toH, toD) ∧
+      Ret (withAdv E me adv (k (absorb E.hash me i σ toH).1) (absorb E.hash me i σ toH).2 I1 (vD ++ toD.toList))
+        x J := by
+  unfold Ret at h ⊢
+  simp only [withAdv] at h
+  revert h
+  split
+  · simp
+  · next w hw =>
+    split
+    · simp
+    · next part hp =>
+      split
+      · simp
+      · next I1 toH toD hst =>
+        intro h
+        exact ⟨w, part, I1, toH, toD, hw, hp, hst, h⟩
+
+/-- Both parties' Boolean inputs, in a run that returned: the adversary's bits are its choice from
+its view BEFORE this instruction, they have the declared width, and the run continued from the
+state holding both parties' bits. -/
+theorem ret_boolInputBoth {α : Type} (oa ob : BoolH) (w : Nat) (once rev : Bool) (slot : Nat) (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) (x : α) (J : Ideal)
+    (h : Ret (withAdv E me adv (seq (.boolInputBoth oa ob w once rev slot) s) σ I vD) x J) :
+    ∃ part, adv.act vD (.boolInputBoth oa ob w once rev ()) = some part ∧ part.bits.length = w ∧
+      (σ.bits slot).length = w ∧
+      Ret (withAdv E me adv s σ (bothBools me I oa ob (σ.bits slot) part.bits) vD) x J := by
+  obtain ⟨w', part, I1, toH, toD, hw, hact, hst, hk⟩ := ret_step_act E me adv _ _ σ I vD x J h
+  simp only [fill] at hw
+  split at hw
+  · next hf =>
+    simp only [Option.some.injEq] at hw
+    subst hw
+    simp only [Wire.early, Option.toList_none, List.append_nil] at hact
+    cases me
+    · simp only [idealStep, if_true] at hst
+      split at hst
+      · next hc =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at hst
+        obtain ⟨rfl, rfl, rfl⟩ := hst
+        exact ⟨part, hact, hc.2, hf, by simpa [absorb, bothBools] using hk⟩
+      · cases hst
+    · simp only [idealStep, reduceCtorEq, if_false] at hst
+      split at hst
+      · next hc =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at hst
+        obtain ⟨rfl, rfl, rfl⟩ := hst
+        exact ⟨part, hact, hc.1, hf, by simpa [absorb, bothBools] using hk⟩
+      · cases hst
+  · cases hw
+
+/-- Both parties' field inputs, in a run that returned, with the adversary's choice. -/
+theorem ret_fieldInput_act {α : Type} (oa ob : List FieldH) (kd : FieldIn) (rev : Bool) (slot : Nat)
+    (s : Script α) (σ : Store) (I : Ideal) (vD : List Release) (x : α) (J : Ideal) (hab : oa.length = ob.length)
+    (h : Ret (withAdv E me adv (seq (.fieldInput oa ob kd rev slot) s) σ I vD) x J) :
+    ∃ part, adv.act vD (.fieldInput oa ob kd rev ()) = some part ∧ part.elems.length = oa.length ∧
+      (σ.elems slot).length = oa.length ∧
+      Ret (withAdv E me adv s σ (bothFields me I oa ob (σ.elems slot) part.elems) vD) x J := by
+  obtain ⟨w, part, I1, toH, toD, hw, hact, hst, hk⟩ := ret_step_act E me adv _ _ σ I vD x J h
+  simp only [fill] at hw
+  split at hw
+  · next hf =>
+    simp only [Option.some.injEq] at hw
+    subst hw
+    simp only [Wire.early, Option.toList_none, List.append_nil] at hact
+    cases me
+    · simp only [idealStep, if_true] at hst
+      split at hst
+      · next hc =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at hst
+        obtain ⟨rfl, rfl, rfl⟩ := hst
+        exact ⟨part, hact, by rw [hab]; exact hc.2.1, hf.1, by simpa [absorb, bothFields] using hk⟩
+      · cases hst
+    · simp only [idealStep, reduceCtorEq, if_false] at hst
+      split at hst
+      · next hc =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at hst
+        obtain ⟨rfl, rfl, rfl⟩ := hst
+        exact ⟨part, hact, hc.1, hf.1, by simpa [absorb, bothFields] using hk⟩
+      · cases hst
+  · cases hw
+
 theorem ret_done {α : Type} (a : α) (σ : Store) (I : Ideal) (vD : List Release) (x : α) (J : Ideal)
     (h : Ret (withAdv E me adv (.done a) σ I vD) x J) : x = a ∧ J = I := by
   obtain ⟨h1, h2⟩ := h
