@@ -32,11 +32,13 @@ def «seal» (w : Worker) (version : Bytes) : M (Opened .sealedBlob Bytes) := do
 /-- **This party's XOR share of the account id and password into the engines** (op 47): neither
 party can open the authenticated socket alone. -/
 def credentials (w : Worker) (share : Secret Bytes) : M Unit := do
+  if let some f := w.overrides.accountCredentials then return ← f share
   let _ ← Legacy.inputOwn w .accountCredentials share
 
 /-- TEST: **admit the account from the export** (op 46): its identity key (OWN, `Secret`) and its
 sender certificate. -/
 def admitTest (w : Worker) (identity : Secret Bytes) (certificate : Bytes) : M Unit := do
+  if let some f := w.overrides.accountAdmitTest then return ← f identity certificate
   let _ ← Legacy.inputOwn w .accountAdmit (identity ++ Secret.hide certificate)
 
 end TlsMpc.Node.Flow.Account

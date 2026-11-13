@@ -72,6 +72,12 @@ structure Overrides where
   accountKey : Option (Secret Bytes → TlsClient.M Unit) := none
   accountLoad : Option (Bytes → TlsClient.M Unit) := none
   accountSeal : Option (Bytes → TlsClient.M (Opened .sealedBlob Bytes)) := none
+  accountCredentials : Option (Secret Bytes → TlsClient.M Unit) := none
+  accountAdmitTest : Option (Secret Bytes → Bytes → TlsClient.M Unit) := none
+  /-- Op 32 on a connection's view (the view's connection index) with the state argument. -/
+  upgradeAuthenticated :
+    Option (Option Nat → Nat → TlsClient.M (TlsWorker.BufferHandle × Nat × Opened .upgradeAccept Bytes)) := none
+  curvePrepareContacts : Option (List ContactId → TlsClient.M (Opened .prepareStatus Bytes)) := none
   sendSeal : Option (ContactId → Bytes → TlsClient.M (Opened .sealedEnvelope (Option (Nat × List Bytes)))) := none
   sendSealDevices :
     Option (ContactId → Bytes → Bytes → Nat → TlsClient.M (Opened .sealedEnvelope (Option (Nat × List Bytes)))) := none

@@ -69,6 +69,7 @@ namespace Curve
 /-- **Prepare loaded contacts for sending** (op 66): their per-session curve work, in the same
 field rounds. One status byte per contact (255: prepared). -/
 def prepareContacts (w : Worker) (contacts : List ContactId) : M (Opened .prepareStatus Bytes) := do
+  if let some f := w.overrides.curvePrepareContacts then return ← f contacts
   pure (Reveal.prepareStatus (← Legacy.call w .contactsPrepare (contacts.flatMap (uint 16))))
 
 end Curve
