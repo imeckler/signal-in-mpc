@@ -243,14 +243,17 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
   { randomJoint := on "random" (randomJoint r)
     upgradeAnonymous := on "upgrade" (upgradeAnonymous r)
     tlsBackend := on "tls" fun c =>
-      { begin := do refill r 4 0; let refs ← s.tlsRefs c; (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "tls: certificate check") refs).begin
-        derive := fun k peer hash => do refill r 4 0; (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).derive k peer hash
-        openHandshake := fun k sq wire => do (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).openHandshake k sq wire
-        authenticate := fun h ch sc hs sg => do (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).authenticate h ch sc hs sg
-        verifyFinished := fun k hs m => do (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).verifyFinished k hs m
-        finish := fun k sh ch cert => do (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).finish k sh ch cert
-        retire := fun k a => do (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).retire k a
-        abort := do (TlsBackend.scriptBackend r.tls ka (fun _ _ _ _ _ => throw "") (← s.tlsRefs c)).abort }
+      -- The certificate check stays local, as the legacy backend's (`Rpc.authenticate`).
+      let hs (refs : TlsBackend.Refs JoinBackend.SplitState) :=
+        TlsBackend.scriptBackend r.tls ka r.worker.pipe.authenticate refs
+      { begin := do refill r 4 0; (hs (← s.tlsRefs c)).begin
+        derive := fun k peer hash => do refill r 4 0; (hs (← s.tlsRefs c)).derive k peer hash
+        openHandshake := fun k sq wire => do (hs (← s.tlsRefs c)).openHandshake k sq wire
+        authenticate := fun h ch sc hh sg => do (hs (← s.tlsRefs c)).authenticate h ch sc hh sg
+        verifyFinished := fun k hh m => do (hs (← s.tlsRefs c)).verifyFinished k hh m
+        finish := fun k sh ch cert => do (hs (← s.tlsRefs c)).finish k sh ch cert
+        retire := fun k a => do (hs (← s.tlsRefs c)).retire k a
+        abort := do (hs (← s.tlsRefs c)).abort }
     tlsPublicBuffer := on "tls" fun c bytes => do TlsBackend.publicBuffer r.tls (← s.tlsRefs c) bytes
     tlsRecordLength := on "tls" fun c h => do TlsBackend.recordLength r.tls (← s.tlsRefs c) h
     tlsRevealRange := on "tls" fun c h o n => do TlsBackend.revealRange r.tls (← s.tlsRefs c) h o n
