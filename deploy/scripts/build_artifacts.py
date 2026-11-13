@@ -250,6 +250,8 @@ def image(a):
     command = [docker or 'docker', 'build', '--progress=plain', '-f', dockerfile, '--build-arg', f'MODE={a.mode}', '-t', a.tag]
     if a.target:
         command += ['--target', a.target]
+    if a.platform:
+        command += ['--platform', a.platform]
     command.append(a.context)
     print('note: the build downloads Ubuntu packages, elan/Lean, rustup and the database client\'s crates; it is CPU-heavy for a long time')
     if not a.yes:
@@ -310,6 +312,7 @@ def main():
     i.add_argument('--tag', required=True)
     i.add_argument('--dockerfile')
     i.add_argument('--target', help='build only up to this stage (base, engines, lean, rust, runtime)')
+    i.add_argument('--platform', help='e.g. linux/amd64 or linux/arm64 (default: the Docker host\'s)')
     i.add_argument('--timeout', type=int, default=4 * 3600)
     i.add_argument('--yes', action='store_true')
     a = p.parse_args()
