@@ -170,7 +170,9 @@ def generatePool (r : Runner) (p : Masks.Params) : M Unit := do
   let bucketValue ← r.stashBytes (← r.randomM 32)
   let b ← r.allocB (Masks.boolIds p)
   let f ← r.allocF (Masks.fieldIds p)
-  let pool ← r.run (Masks.generate p b f r.hash r.me ⟨bits, elems, coins, cutNonce, cutValue, bucketNonce, bucketValue⟩)
+  let coinSlots := (List.range p.M).map (coins + ·)
+  let pool ← r.runReleasing (Masks.generate p b f r.hash r.me ⟨bits, elems, coins, cutNonce, cutValue, bucketNonce, bucketValue⟩)
+    ([bits, elems, cutNonce, cutValue, bucketNonce, bucketValue] ++ coinSlots)
   let st ← Runner.get r.state
   Runner.set r.state { st with pool := { words := st.pool.words ++ pool.words, bits := st.pool.bits ++ pool.bits } }
 
@@ -191,7 +193,7 @@ def refill (r : Runner) (words bits : Nat) : M Unit := do
 def randomJoint (r : Runner) : M (Opened .jointRandom Bytes) := do
   let nonce ← r.stashBytes (← r.randomM 32)
   let value ← r.stashBytes (← r.randomM 32)
-  let random ← r.run (Random.joint r.hash r.me nonce value)
+  let random ← r.runReleasing (Random.joint r.hash r.me nonce value) [nonce, value]
   insist (random.length == 32) "invalid joint randomness"
   return Reveal.jointRandom random
 
@@ -199,15 +201,16 @@ def randomJoint (r : Runner) : M (Opened .jointRandom Bytes) := do
 def upgradeAnonymous (r : Runner) : M (Opened .upgradeNonce (Bytes × Bytes)) := do
   let nonce ← r.stashBytes (← r.randomM 32)
   let value ← r.stashBytes (← r.randomM 32)
-  let upgrade ← r.run (Upgrade.publicUpgrade r.hash r.me nonce value)
+  let upgrade ← r.runReleasing (Upgrade.publicUpgrade r.hash r.me nonce value) [nonce, value]
   insist (upgrade.length == 44) "invalid public upgrade receipt"
   return Reveal.upgradeNonce (upgrade.take 16) (upgrade.drop 16)
 
-/-- A contact-table step on the runner's table: its script, then its commit. -/
-def tableStep {α : Type} (r : Runner) (f : Contacts.Table → Contacts.Step α) : M α := do
+/-- A contact-table step on the runner's table: its script, then its commit; the slots it was given
+are released after it (J13). -/
+def tableStep {α : Type} (r : Runner) (f : Contacts.Table → Contacts.Step α) (slots : List Nat := []) : M α := do
   let t ← r.table.get
   let st := f t
-  let a ← r.run st.script
+  let a ← r.runReleasing st.script slots
   r.table.set (st.commit a)
   return a
 
@@ -242,7 +245,10 @@ def agreeSlots (s : Session) : M Join.AgreeSlots := do
 /-- Run a state-threaded script whose agreements take `counts` from the supply (J1: new slots). -/
 def runAgree {α : Type} (s : Session) (counts : List Nat) (g : Receive.Gen α) : M α := do
   let r := s.runner
-  ReceiveBackend.runWith r.receive (← r.supply counts) g
+  let supply ← r.supply counts
+  let a ← ReceiveBackend.runWith r.receive supply g
+  r.release (supply.map (·.1))
+  return a
 
 /-- **J12: the account's sender key word**, made once (`ContactsPrepare.senderPublicG`: X25519 of the
 identity with 9, as the C++'s `agreement_word(identity, 9)`) and kept in the account state. -/
@@ -278,6 +284,7 @@ def prepareOne (s : Session) (id : Nat) (state : BoolH) : M Unit := do
       nonce := ← r.stashBytes (← r.randomM 32),
       share := ← r.stashBytes (scalar.map Curve.offsetShare) }
   let p ← runAgree s [1] (ContactsPrepare.prepareOneG r.hash r.me cert certLen sl os state)
+  r.release [os.r, os.bits, os.masks, os.nonce, os.share]
   let st ← Runner.get r.state
   let (t', c') := ContactsPrepare.commit st.table (← get s.prepared) id p
   Runner.set r.state { st with table := t' }
@@ -306,7 +313,7 @@ def upgradeAuthenticated (s : Session) (c : Option Nat) (state : Nat) :
   let nonce ← r.stashBytes (← r.randomM 32)
   let value ← r.stashBytes (← r.randomM 32)
   let n ← r.allocB 3
-  let (h, accept) ← r.run (UpgradeAuth.authenticated r.hash r.me nonce value n cr)
+  let (h, accept) ← r.runReleasing (UpgradeAuth.authenticated r.hash r.me nonce value n cr) [nonce, value]
   insist (accept.length == 28) "invalid upgrade receipt"
   let refs ← s.tlsRefs c
   let (id, b') := (← get refs.buffers).add (.publicBytes h UpgradeAuth.requestBytes)
@@ -368,7 +375,7 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
     tlsRevealRange := on "tls" fun c h o n => do TlsBackend.revealRange r.tls (← s.tlsRefs c) h o n
     contactsKey := on "contacts" fun id share => do
       let slot ← r.stashBits (share.map fun b => bitsOf (toB8 b))
-      let _ ← tableStep r fun t => Contacts.opKey t id slot
+      let _ ← tableStep r (fun t => Contacts.opKey t id slot) [slot]
     contactsLoad := on "contacts" fun id stored => do
       let (v, c, ct) := splitStored stored
       return Reveal.blobAccepted (← tableStep r fun t => Contacts.opOpen t id [0] v c ct).isSome
@@ -385,7 +392,7 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
     accountKey := on "account" fun share => withCounters s fun a => do
       let slot ← r.stashBits (share.map fun b => bitsOf (toB8 b))
       let st := Account.keyStep a slot
-      let h ← r.run st.1
+      let h ← r.runReleasing st.1 [slot]
       return ((), st.2 h)
     accountSeal := on "account" fun version => withCounters s fun a => do
       let st := Account.sealStep a (toB8 version)
@@ -407,7 +414,7 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
       withCounters s fun a => do
         let slot ← r.stashBits (share.map fun b => bitsOf (toB8 b))
         let st := Account.credentialsStep a slot
-        let p ← r.run st.1
+        let p ← r.runReleasing st.1 [slot]
         return ((), st.2 p)
     accountAdmitTest := on "account" fun identity certificate => do
       insist (identity.length == 32 && !certificate.isEmpty && certificate.length ≤ 1024) "account admission"
@@ -417,7 +424,8 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
       let scalarSlot ← r.stashBits (identity.map fun b => bitsOf (toB8 b))
       let certSlot ← r.stashBits ((Secret.hide certificate).map fun b => bitsOf (toB8 b))
       let st ← Runner.get r.state
-      let o ← r.run (Account.admitStep (← get s.account) n f st.pool s.hinted scalarSlot certSlot certificate.length)
+      let o ← r.runReleasing (Account.admitStep (← get s.account) n f st.pool s.hinted scalarSlot certSlot certificate.length)
+        [scalarSlot, certSlot]
       let st' ← Runner.get r.state
       Runner.set r.state { st' with pool := o.pool }
       set s.account { o.state with ctr := st'.table.ctr }

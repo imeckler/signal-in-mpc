@@ -444,6 +444,78 @@ def Slots.over (m : Slots) (base : Store) : Store :=
   { bits := fun j => m.bits[j]?.getD (base.bits j), elems := fun j => m.elems[j]?.getD (base.elems j),
     bytes := fun j => m.bytes[j]?.getD (base.bytes j) }
 
+/-! ### J13: releasing slots
+
+A script's private inputs live in store slots the runner hands out (`Runner.fresh`, a counter that
+only grows). Once the script that read them has finished, the IO side RELEASES them
+(`Runner.release`, used by the selection: the J1 supply after each operation, the commitment
+nonces and values, the key and credential shares, the conversions' and the offset agreement's
+contributions). Why a released slot is not read again:
+  * `fresh` never hands it out again (`Ledger`: every slot handed out is at or above the counter,
+    every released slot below it: `Ledger.fresh_not_released`, preserved by every step);
+  * the joined scripts read only the slots handed to them for that run, each once (J1:
+    `JoinOnce.openFirst_reads_once`, `session_reads_once`, `refreshOps_reads_once`);
+  * and if a script still named a released slot, `fill` would read the base store's empty value
+    there (`release_reads_base`), which no input's skeleton accepts (`Wire.payloadOk`: a payload
+    must have the declared width): the batch is unusable for this party and both reject it (design
+    note item 4) — it fails closed, it never reads an old secret. -/
+
+/-- Erase slots `ns` from the store. -/
+def Slots.release (m : Slots) (ns : List Nat) : Slots :=
+  { bits := ns.foldl (fun t n => t.erase n) m.bits, elems := ns.foldl (fun t n => t.erase n) m.elems,
+    bytes := ns.foldl (fun t n => t.erase n) m.bytes }
+
+theorem foldl_erase {β : Type} (ns : List Nat) (t : Std.HashMap Nat β) (s : Nat) :
+    (ns.foldl (fun t n => t.erase n) t)[s]? = if s ∈ ns then none else t[s]? := by
+  induction ns generalizing t with
+  | nil => simp
+  | cons n ns ih =>
+    simp only [List.foldl_cons, ih, Std.HashMap.getElem?_erase, List.mem_cons]
+    by_cases h1 : s ∈ ns
+    · simp [h1]
+    · by_cases h2 : s = n
+      · subst h2; simp
+      · have h3 : (n == s) = false := by simp; omega
+        simp [h1, h2, h3]
+
+theorem foldl_erase_self {β : Type} (ns : List Nat) (t : Std.HashMap Nat β) (s : Nat) (hs : s ∈ ns) :
+    (ns.foldl (fun t n => t.erase n) t)[s]? = none := by
+  rw [foldl_erase]; simp [hs]
+
+/-- **A released slot reads as the base store** (empty in a session). -/
+theorem release_reads_base (m : Slots) (base : Store) (ns : List Nat) (s : Nat) (hs : s ∈ ns) :
+    ((m.release ns).over base).bits s = base.bits s ∧ ((m.release ns).over base).elems s = base.elems s ∧
+      ((m.release ns).over base).bytes s = base.bytes s := by
+  simp [Slots.over, Slots.release, foldl_erase_self ns _ s hs]
+
+/-- The slot ledger: the next fresh slot and the released ones (a model of `Runner.next` and the
+releases). -/
+structure Ledger where
+  next : Nat
+  released : List Nat
+
+/-- Every released slot is below the counter. -/
+def Ledger.Inv (l : Ledger) : Prop := ∀ s ∈ l.released, s < l.next
+
+def Ledger.fresh (l : Ledger) : Nat × Ledger := (l.next, { l with next := l.next + 1 })
+
+/-- Release slots handed out before (below the counter). -/
+def Ledger.release (l : Ledger) (ns : List Nat) : Ledger :=
+  { l with released := l.released ++ ns.filter (· < l.next) }
+
+/-- **`fresh` never hands out a released slot**, and keeps the ledger's invariant. -/
+theorem Ledger.fresh_not_released (l : Ledger) (h : l.Inv) : l.fresh.1 ∉ l.released ∧ l.fresh.2.Inv := by
+  refine ⟨fun hm => by have := h _ hm; simp [Ledger.fresh] at this, fun s hs => ?_⟩
+  have := h s hs
+  simp [Ledger.fresh]; omega
+
+theorem Ledger.release_inv (l : Ledger) (ns : List Nat) (h : l.Inv) : (l.release ns).Inv := by
+  intro s hs
+  simp only [Ledger.release, List.mem_append, List.mem_filter, decide_eq_true_eq] at hs
+  rcases hs with hs | ⟨_, hs⟩
+  · exact h s hs
+  · exact hs
+
 /-- **The runner**: the session's one script state and this party's store (module doc). -/
 structure Runner where
   me : Party
@@ -531,6 +603,16 @@ def stashElems (r : Runner) (v : Secret (List F)) : M Nat := do
   let n ← r.fresh
   set r.slots (v.stash (fun e m => { m with elems := m.elems.insert n e }) (← get r.slots))
   return n
+
+/-- **J13: release slots** whose script has finished (module section "releasing slots"). -/
+def release (r : Runner) (ns : List Nat) : M Unit := do
+  set r.slots ((← get r.slots).release ns)
+
+/-- Run a script, then release the slots it was given. -/
+def runReleasing (r : Runner) {α : Type} (s : Script α) (ns : List Nat) : M α := do
+  let a ← r.run s
+  r.release ns
+  return a
 
 /-- A bit slot's content (what was opened to this party alone), kept secret. -/
 def takeBits (r : Runner) (n : Nat) : M (Secret Bits) := do
