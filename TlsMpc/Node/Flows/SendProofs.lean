@@ -39,12 +39,15 @@ T4-SEND AT THE FUNCTION LEVEL (each kernel's output read through the script's la
     and the kernels' inputs are the script's concatenations): on an accepted send, what leaves for the
     server is the TLS record sealing the request frame that carries the reference sealed-sender
     envelope of the reference ratchet step, and the stored state is the advanced one.
-  * Refusal: `Send.seal_refused_silent` (nothing after the status is released; the state is kept)
-    and `seal_refused_value` (a refused status opens an all-zero envelope slot, never opened).
+  * Refusal: `Send.seal_refused_silent` (nothing after the status is released; the state is kept).
+  * Op 61's kernels: `bundleSeal_get` (`bundle-seal`'s conversation, pending block, address and text
+    are the script's; with `EstablishDevices.openedEnvelopes_reference` an accepted device's envelope
+    is the reference PreKey envelope of those inputs; `wired` stays S15's: that the stored pending
+    block is what the refresh's `establish-session` produced).
 
-WF: `requestScript_wf`, `requestCtrScript_wf`, `sealScript_wf` (op 41, from the contact's state and
-the account's handles); ops 61 and 62 (device lists): the vectors' batches pass `checkBatch`
-(S13_NOTES.md, gap S13-4).
+WF: `requestScript_wf`, `requestCtrScript_wf`, `sealScript_wf` (op 41, every branch, from the
+contact's state and the account's handles under `SealSigs`); ops 61 and 62 (device lists): the
+vectors' batches pass `checkBatch` (S13_NOTES.md, gap S13-4).
 -/
 
 namespace TlsMpc.Node.Flows.Send
@@ -261,6 +264,71 @@ theorem sealOut_lengths (a : BVExpr.Assignment) (hb : SealBound cert cw pw ew iw
   · rw [l3]; rfl
 
 end Seal
+
+/-! ## `bundle-seal` (op 61, devices of kinds 1 and 2) through the script's layout -/
+
+section Bundle
+
+variable (cert content : Nat)
+
+/-- **`bundle-seal`'s view of the bundle `devicesScript` builds** (conversation = certificate ‖ the
+device's record, its pending block, our address, the built text, then four words): its byte inputs
+are the script's. With `EstablishDevices.openedEnvelopes_reference` (every assignment), an accepted
+device's opened envelope is the reference PreKey sealed-sender envelope of exactly these inputs. -/
+theorem bundleSeal_get (conv pending address text : B8) (w : Bits) (hc : conv.length = convBytes cert)
+    (hp : pending.length = EstablishKernel.pendingBytes) (ha : address.length = 17) (ht : text.length = content + 10)
+    (oneTime : Bool) (cw pw ew iw : Nat) :
+    let K := BundleKernel.bundleSeal cert oneTime content cw pw ew iw
+    let a := shapedAssign (BundleKernel.sealInputs cert content)
+      (bitsOf conv ++ (bitsOf pending ++ (bitsOf address ++ (bitsOf text ++ w))))
+    let get := fun name => (lookup (BundleKernel.sealInputs cert content) name).map (BVExpr.eval a)
+    K.inputs = BundleKernel.sealInputs cert content ∧
+    get "conversation" = conv ∧ get "pending" = pending ∧ get "localAddress" = address ∧ get "text" = text := by
+  intro K a get
+  have hC : HybridKernel.conversationBytes cert 80 = convBytes cert := by
+    simp [HybridKernel.conversationBytes, convBytes, recordBytes]
+  have e1 : BundleKernel.sealInputs cert content =
+      ("conversation", HybridKernel.Shape.bytes (convBytes cert)) ::
+        ("pending", HybridKernel.Shape.bytes EstablishKernel.pendingBytes) ::
+        ("localAddress", HybridKernel.Shape.bytes 17) :: ("text", HybridKernel.Shape.bytes (content + 10)) ::
+        [("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word),
+          ("staticAgreement", .word)] := by
+    simp only [BundleKernel.sealInputs, hC]
+  have ha' : a = chain 0 ((conv ++ pending ++ address ++ text).map pack8 ++
+      packs [("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word),
+        ("staticAgreement", .word)] w) := by
+    show chain 0 (packs _ _) = _
+    rw [e1, packs_bytes _ _ _ conv _ hc, packs_bytes _ _ _ pending _ hp, packs_bytes _ _ _ address _ ha,
+      packs_bytes _ _ _ text _ ht]
+    simp only [List.map_append, List.append_assoc]
+  have hl : (conv ++ pending ++ address ++ text).length = convBytes cert + 1616 + 17 + (content + 10) := by
+    simp [hc, hp, ha, ht, EstablishKernel.pendingBytes]; omega
+  refine ⟨rfl, ?_, ?_, ?_, ?_⟩
+  · show (lookup _ "conversation").map (BVExpr.eval a) = _
+    rw [ha', show lookup (BundleKernel.sealInputs cert content) "conversation" = ByteCircuit.inputBytes 0 (convBytes cert) by
+      simp [lookup, lookupFrom, BundleKernel.sealInputs, hC], inputBytes_chain _ _ _ _ (by omega), List.drop_zero,
+      List.append_assoc, List.append_assoc, List.take_left' hc]
+  · show (lookup _ "pending").map (BVExpr.eval a) = _
+    rw [ha', show lookup (BundleKernel.sealInputs cert content) "pending" =
+        ByteCircuit.inputBytes (convBytes cert) EstablishKernel.pendingBytes by
+      simp [lookup, lookupFrom, BundleKernel.sealInputs, hC, HybridKernel.Shape.variables],
+      inputBytes_chain _ _ _ _ (by simp only [EstablishKernel.pendingBytes] at hl ⊢; omega),
+      List.append_assoc, List.append_assoc, List.drop_left' hc, List.take_left' hp]
+  · show (lookup _ "localAddress").map (BVExpr.eval a) = _
+    rw [ha', show lookup (BundleKernel.sealInputs cert content) "localAddress" =
+        ByteCircuit.inputBytes (convBytes cert + EstablishKernel.pendingBytes) 17 by
+      simp [lookup, lookupFrom, BundleKernel.sealInputs, hC, HybridKernel.Shape.variables],
+      inputBytes_chain _ _ _ _ (by simp only [EstablishKernel.pendingBytes] at hl ⊢; omega),
+      show conv ++ pending ++ address ++ text = (conv ++ pending) ++ (address ++ text) by simp,
+      List.drop_left' (by simp [hc, hp]), List.take_left' ha]
+  · show (lookup _ "text").map (BVExpr.eval a) = _
+    rw [ha', show lookup (BundleKernel.sealInputs cert content) "text" =
+        ByteCircuit.inputBytes (convBytes cert + EstablishKernel.pendingBytes + 17) (content + 10) by
+      simp [lookup, lookupFrom, BundleKernel.sealInputs, hC, HybridKernel.Shape.variables],
+      inputBytes_chain _ _ _ _ (by simp only [EstablishKernel.pendingBytes] at hl ⊢; omega),
+      List.drop_left' (by simp only [List.length_append, hc, hp, ha]), List.take_of_length_le (by omega)]
+
+end Bundle
 
 /-! ## Slicing a four-field output -/
 
@@ -545,6 +613,97 @@ theorem requestPlain_length (env : B8) (ts id : Nat) (mask frame : B8) (official
   simp only [msg, List.length_append, KernelSpecs.RequestFrame.maskFrom_length] at h3 ⊢
   omega
 
+/-- **`bundle-request-ctr`'s view of the script's bundle**: its frame and mask are the script's. -/
+theorem bundle_get (count : Nat) (K seqB records frame mask : B8) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hr : records.length = recordBytes * count) (hm : mask.length = 4) :
+    let get := fun name => (lookup (KernelSpecs.requestInputsOf frame.length count) name).map
+      (BVExpr.eval (assignOf (requestIn K seqB records frame mask)))
+    get "clientApplication" = K ∧ get "sequence" = seqB ∧ get "records" = records ∧ get "frame" = frame ∧
+      get "mask" = mask := by
+  intro get
+  have hlen : (requestIn K seqB records frame mask).length = 60 + 8 + recordBytes * count + frame.length + 4 := by
+    simp [requestIn, hK, hs, hr, hm]; omega
+  have hR : BundleKernel.recordBytes = recordBytes := rfl
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · show (lookup _ "clientApplication").map _ = _
+    rw [show lookup (KernelSpecs.requestInputsOf frame.length count) "clientApplication" =
+      ByteCircuit.inputBytes 0 60 by simp [lookup, lookupFrom, KernelSpecs.requestInputsOf, BundleKernel.requestInputs]]
+    rw [iv' _ _ _ (by omega), List.drop_zero, requestIn, List.take_left' hK]
+  · show (lookup _ "sequence").map _ = _
+    rw [show lookup (KernelSpecs.requestInputsOf frame.length count) "sequence" =
+      ByteCircuit.inputBytes 60 8 by
+        simp [lookup, lookupFrom, KernelSpecs.requestInputsOf, BundleKernel.requestInputs, HybridKernel.Shape.variables]]
+    rw [iv' _ _ _ (by omega), requestIn, List.drop_left' hK, List.take_left' hs]
+  · show (lookup _ "records").map _ = _
+    rw [show lookup (KernelSpecs.requestInputsOf frame.length count) "records" =
+      ByteCircuit.inputBytes 68 (recordBytes * count) by
+        simp [lookup, lookupFrom, KernelSpecs.requestInputsOf, BundleKernel.requestInputs, HybridKernel.Shape.variables,
+          hR]]
+    rw [iv' _ _ _ (by omega), requestIn, ← List.append_assoc, List.drop_left' (by simp [hK, hs]),
+      List.take_left' hr]
+  · show (lookup _ "frame").map _ = _
+    rw [show lookup (KernelSpecs.requestInputsOf frame.length count) "frame" =
+      ByteCircuit.inputBytes (68 + recordBytes * count) frame.length by
+        simp [lookup, lookupFrom, KernelSpecs.requestInputsOf, BundleKernel.requestInputs, HybridKernel.Shape.variables,
+          hR]]
+    rw [iv' _ _ _ (by omega), requestIn, show K ++ (seqB ++ (records ++ (frame ++ mask))) =
+      (K ++ seqB ++ records) ++ (frame ++ mask) by simp, List.drop_left' (by simp [hK, hs, hr]; omega),
+      List.take_left' rfl]
+  · show (lookup _ "mask").map _ = _
+    rw [show lookup (KernelSpecs.requestInputsOf frame.length count) "mask" =
+      ByteCircuit.inputBytes (68 + recordBytes * count + frame.length) 4 by
+        simp [lookup, lookupFrom, KernelSpecs.requestInputsOf, BundleKernel.requestInputs, HybridKernel.Shape.variables,
+          hR]]
+    rw [iv' _ _ _ (by omega), requestIn, show K ++ (seqB ++ (records ++ (frame ++ mask))) =
+      (K ++ seqB ++ records ++ frame) ++ mask by simp, List.drop_left' (by simp [hK, hs, hr]; omega),
+      List.take_of_length_le (by omega)]
+
+/-- **The script path pairs the device slots itself** (E2's `paired`): `devicesNameOf` names a kernel
+exactly when `BundleKernel.pairs` pairs the offsets `buildDevices` returned, and then it is the
+`bundle-request-ctr` of those pairs. -/
+theorem devicesName_paired (frame : B8) (payloadAt : Nat) (offsets : List Nat) (name : Bytes)
+    (h : devicesNameOf frame payloadAt offsets = some name) :
+    ∃ devices, BundleKernel.pairs (offsets.drop 2) = some devices ∧
+      name = bundleRequestName frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices := by
+  unfold devicesNameOf at h
+  cases hp : BundleKernel.pairs (offsets.drop 2) with
+  | none => rw [hp] at h; cases h
+  | some ds =>
+    rw [hp] at h
+    simp only [Option.map_some, Option.some.injEq] at h
+    exact ⟨ds, rfl, h.symm⟩
+
+/-- **`bundle-request-ctr` on the script's bundle seals the filled devices request**
+(`RequestFrame.bundleRequestCtr_built` with `hframe`, `hmask` discharged by the layout; the frame,
+payload start and offsets are what `PublicRequest.buildDevices` returned for the opened envelopes, the
+pairs the script's own, `devicesName_paired`). -/
+theorem bundleRequestCtr_value (envs : List B8) (ts id : Nat) (mask frame : B8) (official : Bool)
+    (payloadAt : Nat) (offsets : List Nat)
+    (hb : PublicRequest.buildDevices envs ts id mask official = .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (hp : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (K seqB records : B8) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hr : records.length = recordBytes * devices.length) :
+    let msg := PublicRequest.devicesMessage envs ts id official
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun f => f.value.map (BVExpr.eval (assignOf (requestIn K seqB records frame mask)))) =
+      KernelSpecs.sealedRequest K seqB
+        (KernelSpecs.RequestFrame.assembleHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.devicesValues records) msg))
+        (KernelSpecs.bundleRequestValue records (offsets.getD 0 0) (offsets.getD 1 0) devices).1 := by
+  intro msg
+  have hm : mask.length = 4 := by
+    rw [KernelSpecs.RequestFrame.buildDevices_eq] at hb
+    split at hb
+    · cases hb
+    · exact (KernelSpecs.RequestFrame.assemble_ok _ mask frame _ payloadAt offsets hb).2.2.1
+  obtain ⟨g1, g2, g3, g4, g5⟩ := bundle_get devices.length K seqB records frame mask hK hs hr hm
+  simp only at g1 g2 g3 g4 g5
+  have h := KernelSpecs.RequestFrame.bundleRequestCtr_built envs ts id mask frame official payloadAt offsets hb
+    devices hp (assignOf (requestIn K seqB records frame mask)) g4 g5
+  simp only at h
+  rw [h, g1, g2, g3]
+
 end Request
 
 /-! ## The headline: an accepted send, on the script path -/
@@ -793,6 +952,249 @@ theorem requestCtrScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (t
     simp only [bool?_drop, bool?_push, p5, p51, p52, p53, p5c, if_false, if_true]; rfl)) ?_
   split
   · exact WF.done _ _
+  · exact WF.abort _ _
+
+/-- The seal kernels' output marks: status public, conversation private, timestamp ‖ envelope public. -/
+def sealMarks (cert env : Nat) : List Mark :=
+  List.replicate 8 .pub ++ List.replicate (8 * convBytes cert) .never ++ List.replicate (64 + 8 * env) .pub
+
+/-- The signatures `sealScript` relies on (the loader's check, `send_script_kernels_check`): the
+widths kernel (conversation in, 21 public flag bytes out) and every seal kernel it may name (the
+conversation, the text and four words in; `sealMarks` out, within the shell's width bound). -/
+structure SealSigs (sigs : Bytes → Option Sig) (cert : Nat) : Prop where
+  widths : sigs (widthsName cert) = some ⟨8 * convBytes cert, List.replicate 168 .pub⟩
+  sealing : ∀ official classes cw pw ew iw, textClass (textBytes classes official) = some (official, classes) →
+    sigs (sealName official cert classes cw pw ew iw) =
+      some ⟨8 * convBytes cert + 8 * textBytes classes official + 4 * 255,
+        sealMarks cert (sealEnvBytes cert classes official cw pw ew iw)⟩
+  bound : ∀ official classes cw pw ew iw,
+    8 + 8 * convBytes cert + 64 + 8 * sealEnvBytes cert classes official cw pw ew iw ≤ maxWidth
+
+theorem textClass_some {t : Nat} {official : Bool} {classes : Nat} (h : textClass t = some (official, classes)) :
+    t = textBytes classes official ∧ textClass (textBytes classes official) = some (official, classes) := by
+  have ht : t = textBytes classes official := by
+    unfold textClass at h
+    split at h
+    · simp only [Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      simp [textBytes, PrivateTextNotification.builtBytes, PrivateTextNotification.paddedBytes]
+      omega
+    · split at h
+      · simp only [Option.some.injEq, Prod.mk.injEq] at h
+        obtain ⟨rfl, rfl⟩ := h
+        simp [textBytes, PrivateTextNotification.officialBuiltBytes, PrivateTextNotification.officialPaddedBytes]
+        omega
+      · cases h
+  exact ⟨ht, ht ▸ h⟩
+
+/-- Abstract the context: a script is well formed from `c` when it is from every context with the
+properties `c` has. -/
+theorem wf_ctx {α : Type} {sigs : Bytes → Option Sig} {P : Ctx → Prop} {s : Script α} (c : Ctx) (hP : P c)
+    (h : ∀ c', P c' → WF sigs c' s) : WF sigs c s := h c hP
+
+theorem textClass_le {t : Nat} {p : Bool × Nat} (h : textClass t = some p) : t ≤ 330 := by
+  unfold textClass at h
+  split at h
+  · omega
+  · split at h
+    · omega
+    · cases h
+
+set_option linter.unusedSimpArgs false in
+/-- **`sealScript` is well formed** (op 41): from any context with the counter fresh; the
+certificate (`8 · cert` bits), the state (one record), the sender key, the static agreement and the
+ephemeral agreement (255 bits each) live, not once, below the counter and pairwise distinct (the
+ephemeral agreement and the state are freed); the loaded signatures `SealSigs`. Every branch: the
+widths opening, the kernel by name, the status opening, the gate. -/
+theorem sealScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (a : SealArgs)
+    (cm sm dm tm em : List Mark) (hf : Fresh c n)
+    (hcn : a.cert.id < n) (hsn : a.state.id < n) (hdn : a.sender.id < n) (htn : a.static.id < n)
+    (hen : a.ephAgreement.id < n)
+    (hes : a.ephAgreement.id ≠ a.state.id) (hec : a.ephAgreement.id ≠ a.cert.id)
+    (hed : a.ephAgreement.id ≠ a.sender.id) (het : a.ephAgreement.id ≠ a.static.id)
+    (hc : c.bool? a.cert = some ⟨cm, false⟩) (hs : c.bool? a.state = some ⟨sm, false⟩)
+    (hd : c.bool? a.sender = some ⟨dm, false⟩) (ht : c.bool? a.static = some ⟨tm, false⟩)
+    (he : c.bool? a.ephAgreement = some ⟨em, false⟩)
+    (hcm : cm.length = 8 * a.certLen) (hsm : sm.length = 8 * recordBytes) (hdm : dm.length = 255)
+    (htm : tm.length = 255) (hem : em.length = 255) (hpk : a.ephPublic.length = 32)
+    (hsig : SealSigs sigs a.certLen) :
+    WF sigs c (sealScript n a) := by
+  have hwM := maxWidth_eq
+  -- ids below the counter are none of the script's
+  have xc : ∀ k, (a.cert.id = n + k) = False := fun k => by simp; omega
+  have xs : ∀ k, (a.state.id = n + k) = False := fun k => by simp; omega
+  have xd : ∀ k, (a.sender.id = n + k) = False := fun k => by simp; omega
+  have xt : ∀ k, (a.static.id = n + k) = False := fun k => by simp; omega
+  have xe : ∀ k, (a.ephAgreement.id = n + k) = False := fun k => by simp; omega
+  have xc0 : (a.cert.id = n) = False := by simp; omega
+  have xs0 : (a.state.id = n) = False := by simp; omega
+  have xd0 : (a.sender.id = n) = False := by simp; omega
+  have xt0 : (a.static.id = n) = False := by simp; omega
+  have xe0 : (a.ephAgreement.id = n) = False := by simp; omega
+  have xe' : ∀ k, (n + k = a.ephAgreement.id) = False := fun k => by simp; omega
+  have xe0' : (n = a.ephAgreement.id) = False := by simp; omega
+  have es : (a.state.id = a.ephAgreement.id) = False := by simp; omega
+  have ec : (a.cert.id = a.ephAgreement.id) = False := by simp; omega
+  have ed : (a.sender.id = a.ephAgreement.id) = False := by simp; omega
+  have et : (a.static.id = a.ephAgreement.id) = False := by simp; omega
+  unfold sealScript
+  split
+  · rename_i official classes hcl
+    obtain ⟨hT, hcls⟩ := textClass_some hcl
+    split
+    · rename_i hcert
+      simp only [widthsBlock, seqs_cons, seqs_nil]
+      -- conversation, widths kernel
+      refine WF_seq sigs c _ _ _ (check_concat sigs
+        (useBools_cons (useBool_keep hc rfl) (useBools_cons (useBool_keep hs rfl) (useBools_nil _))) hf
+        (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+              List.length_append, hcm, hsm, recordBytes, hwM]; omega)) ?_
+      have hf1 := hf.push n (Nat.le_refl n) ⟨(List.map BoolInfo.marks [⟨cm, false⟩, ⟨sm, false⟩]).flatten,
+        [false, false].any id⟩
+      refine WF_seq sigs _ _ _ _ (check_run sigs hsig.widths Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
+        (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+              List.length_append, hcm, hsm, convBytes]; omega) hf1 (by decide)
+        (by simp only [List.length_replicate, hwM]; omega)) ?_
+      refine WF_openThen sigs _ _ _ _ ?_
+      rw [check_openBool sigs (by decide) (useBool_keep (bool?_push_self _ _ _) rfl) (by
+        rw [List.all_eq_true]
+        intro x hx
+        simp only [List.replicate_one, List.flatten_cons, List.flatten_nil, List.append_nil, List.mem_replicate] at hx
+        rw [hx.2]
+        rfl)]
+      intro flags _
+      refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by rw [bool?_push_self]; rfl)) ?_
+      unfold afterWidths
+      split
+      · rename_i cw pw ew iw _
+        have hsg := hsig.sealing official classes cw pw ew iw hcls
+        have hbd := hsig.bound official classes cw pw ew iw
+        generalize sealEnvBytes a.certLen classes official cw pw ew iw = E at hsg hbd
+        simp only [sealBlock, seqs_cons, seqs_nil]
+        -- the context so far, abstracted
+        refine wf_ctx (P := fun c1 => c1.bool? ⟨n⟩ = some ⟨cm ++ sm, false⟩ ∧
+          (∀ h : BoolH, h.id < n → c1.bool? h = c.bool? h) ∧ Fresh c1 (n + 2)) _ ⟨?_, ?_, ?_⟩ ?_
+        · rw [bool?_drop_of_ne _ _ _ (by simp), bool?_push_of_ne _ _ _ _ (by simp), bool?_push_self]
+          simp
+        · intro h hh
+          rw [bool?_drop_of_ne _ _ _ (by omega), bool?_push_of_ne _ _ _ _ (by omega),
+            bool?_push_of_ne _ _ _ _ (by omega)]
+        · exact Fresh.drop (Fresh.push (hf.push n (Nat.le_refl n) _) (n + 1) (Nat.le_refl _) _) _
+        intro c1 ⟨b0, bx, hf2⟩
+        have hT8 : (bitsOf a.text ++ wordBits a.ephPublic).length = 8 * textBytes classes official + 255 := by
+          simp [wordBits, hpk, hT]
+        have hT330 := textClass_le hcl
+        have hcert' : a.certLen ≤ 1024 := hcert
+        refine WF_seq sigs _ _ _ _ (check_boolPublic sigs hf2 _ (by rw [hT8, hwM, ← hT]; omega)) ?_
+        have nk : ∀ i j : Nat, i ≠ j → (n + i = n + j) = False := fun i j h => by simp; omega
+        have n0 : ∀ j : Nat, j ≠ 0 → (n = n + j) = False := fun j h => by simp; omega
+        have n0' : ∀ j : Nat, j ≠ 0 → (n + j = n) = False := fun j h => by simp; omega
+        have bD := bx a.sender hdn
+        have bT := bx a.static htn
+        have bE := bx a.ephAgreement hen
+        have bS := bx a.state hsn
+        rw [hd] at bD
+        rw [ht] at bT
+        rw [he] at bE
+        rw [hs] at bS
+        refine WF_seq sigs _ _ _ _ (check_concat sigs
+          (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by simp)).trans b0) rfl)
+            (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl)
+              (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans bD) rfl)
+                (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans bE) rfl)
+                  (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans bT) rfl)
+                    (useBools_nil _))))))
+          (hf2.push (n + 2) (Nat.le_refl _) _)
+          (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+                List.length_append, List.length_replicate, hT8, hcm, hsm, hdm, htm, hem, recordBytes, hwM, ← hT]
+              omega)) ?_
+        refine WF_seq sigs _ _ _ _ (check_run sigs hsg Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
+          (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+                List.length_append, List.length_replicate, hT8, hcm, hsm, hdm, htm, hem, convBytes, recordBytes]
+              omega)
+          ((hf2.push (n + 2) (Nat.le_refl _) _).push (n + 3) (Nat.le_refl _) _) (by decide)
+          (by simp only [sealMarks, List.length_append, List.length_replicate]; omega)) ?_
+        have hM : (List.replicate 1 (sealMarks a.certLen E)).flatten = sealMarks a.certLen E := by simp
+        have hML : (sealMarks a.certLen E).length = 8 + 8 * convBytes a.certLen + (64 + 8 * E) := by
+          simp only [sealMarks, List.length_append, List.length_replicate]
+        refine WF_seq sigs _ _ _ _ (check_slice sigs (useBool_keep (bool?_push_self _ _ _) rfl)
+          (by simp only [hM, hML, statusEnd]; omega)
+          ((((hf2.push (n + 2) (Nat.le_refl _) _).push (n + 3) (Nat.le_refl _) _).push (n + 4) (Nat.le_refl _) _))
+          (by rw [hwM]; simp only [statusEnd]; omega)) ?_
+        refine WF_seq sigs _ _ _ _ (check_slice sigs
+          (useBool_keep ((bool?_push_of_ne _ _ _ _ (by simp)).trans (bool?_push_self _ _ _)) rfl)
+          (by simp only [hM, hML, recordFrom, recordEnd, convBytes]; omega)
+          (((((hf2.push (n + 2) (Nat.le_refl _) _).push (n + 3) (Nat.le_refl _) _).push (n + 4) (Nat.le_refl _) _).push
+            (n + 5) (Nat.le_refl _) _))
+          (by rw [hwM]; simp only [recordFrom, recordEnd, convBytes, recordBytes]; omega)) ?_
+        refine WF_seq sigs _ _ _ _ (check_slice sigs
+          (useBool_keep ((bool?_push_of_ne _ _ _ _ (by simp)).trans ((bool?_push_of_ne _ _ _ _ (by simp)).trans
+            (bool?_push_self _ _ _))) rfl)
+          (by simp only [hM, hML, recordEnd, envelopeEnd, convBytes]; omega)
+          ((((((hf2.push (n + 2) (Nat.le_refl _) _).push (n + 3) (Nat.le_refl _) _).push (n + 4) (Nat.le_refl _) _).push
+            (n + 5) (Nat.le_refl _) _).push (n + 6) (Nat.le_refl _) _))
+          (by rw [hwM]; simp only [recordEnd, envelopeEnd, convBytes, recordBytes]; omega)) ?_
+        -- frees: n+2, n+3, n+4, the ephemeral agreement, n
+        refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+          simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+        refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+          simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+        refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+          simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+        refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+          simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true, bE]; rfl)) ?_
+        refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+          simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;>
+            simp [b0])) ?_
+        -- the status
+        refine WF_openThen sigs _ _ _ _ ?_
+        rw [check_openBool sigs (by decide) (useBool_keep (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true]
+            <;> rfl) rfl) (by
+          rw [List.all_eq_true]
+          intro x hx
+          simp only [hM, sealMarks, List.drop_zero, Nat.sub_zero, statusEnd, List.append_assoc, List.replicate_one,
+            List.flatten_cons, List.flatten_nil, List.append_nil] at hx
+          rw [List.take_left' (by simp)] at hx
+          rw [(List.mem_replicate.mp hx).2]
+          rfl)]
+        intro st _
+        unfold afterStatus
+        split
+        · simp only [seqs_cons, seqs_nil]
+          refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+          refine WF_openThen sigs _ _ _ _ ?_
+          rw [check_openBool sigs (by decide) (useBool_keep (by
+              simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true]
+              <;> rfl) rfl) (by
+            rw [List.all_eq_true]
+            intro x hx
+            simp only [hM, sealMarks, recordEnd, envelopeEnd, List.replicate_one, List.flatten_cons, List.flatten_nil,
+              List.append_nil] at hx
+            have hx' := List.mem_of_mem_take hx
+            rw [List.append_assoc, show 8 + 8 * convBytes a.certLen =
+                (List.replicate 8 Mark.pub ++ List.replicate (8 * convBytes a.certLen) Mark.never).length by
+                simp only [List.length_append, List.length_replicate],
+              ← List.append_assoc, List.drop_left] at hx'
+            have hx'' := hx'
+            rw [(List.mem_replicate.mp hx'').2]
+            rfl)]
+          intro te _
+          refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+          refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true, bS]; rfl)) (WF.done _ _)
+        · simp only [seqs_cons, seqs_nil]
+          refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+          refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp)) ?_
+          refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+            simp (config := { decide := true }) only [bool?_push, bool?_drop, nk, n0, n0', ne_eq, Nat.add_left_cancel_iff, xe, xe0, xe', xe0', xs, xs0, es, if_false, if_true, not_false_eq_true] <;> simp))
+            (WF.done _ _)
+      · exact WF.abort _ _
+    · exact WF.abort _ _
   · exact WF.abort _ _
 
 end TlsMpc.Node.Flows.Send
