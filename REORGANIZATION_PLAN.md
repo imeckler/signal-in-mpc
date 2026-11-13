@@ -1720,8 +1720,9 @@ called by the controller (the flow API switches with S12–S16; the legacy libra
   (`s11_quotientMany_honest`); honest runs through `jointRun` of `agree` (handles hold
   `X25519.spec`; `x25519_inverse_eq` in the main package), `offsetPrepare`, `offsetStep` (the
   agreement value via `offsetSum_eval`), `offsetStepFast`, `tables`, `agreeAffine`, `signatures`,
-  `torsion` (`s11_agree_honest`, `s11_offset_honest`, `s11_hinted_honest`), under the named program
-  hypotheses `ComputesD`/`Live`. Open: honest runs of `lift`, `agreeHinted`, op 66; value-level
+  `torsion`, `lift`, `agreeHinted` (`s11_agree_honest`, `s11_offset_honest`, `s11_hinted_honest`,
+  `s11_lift_agreeHinted_honest`), under the named program hypotheses `ComputesD`/`Live`. Open:
+  honest runs of `prepareSecond` (m-point K₀ exchange) and op 66 as a staged flow; value-level
   T3; P-HINT (c), (d) with the runs; `decode ∘ encode` and `toAffineAll` liveness (tested only).
 - Rust: 14 loader entries with placeholder pins (fail closed); `tests/s11_pair.rs` (stand-in
   engines, real compiled programs through program.rs: split, nine agreements, offset, hinted, op 66
