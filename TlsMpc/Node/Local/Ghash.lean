@@ -90,9 +90,28 @@ theorem half_eq_localTag (shares : List W) (aad ct : B8) :
 
 /-! ## The doubling schedule -/
 
-/-- The odd powers a round from `m` to `t` powers computes in the engines, in order. -/
-def oddPowers (m t : Nat) : List Nat :=
-  ((List.range (t - m)).map (fun i => m + 1 + i)).filter (fun k => k % 2 == 1)
+/-- The first odd power above `m`. -/
+def firstOdd (m : Nat) : Nat := if (m + 1) % 2 = 1 then m + 1 else m + 2
+
+/-- How many odd powers lie in `(m, t]`. -/
+def oddCount (m t : Nat) : Nat := if firstOdd m ≤ t then (t - firstOdd m) / 2 + 1 else 0
+
+/-- The odd powers a round from `m` to `t` powers computes in the engines, in order: the odd `k`
+with `m < k ≤ t`. -/
+def oddPowers (m t : Nat) : List Nat := (List.range (oddCount m t)).map fun j => firstOdd m + 2 * j
+
+theorem length_oddPowers (m t : Nat) : (oddPowers m t).length = oddCount m t := by simp [oddPowers]
+
+/-- Element `i / 2` of the odd powers is power `m + 1 + i`, for every odd power of the round. -/
+theorem oddPowers_getD (m t i : Nat) (hi : i < t - m) (ho : (m + 1 + i) % 2 = 1) :
+    i / 2 < oddCount m t ∧ (oddPowers m t).getD (i / 2) 0 = m + 1 + i := by
+  have hc : i / 2 < oddCount m t := by
+    simp only [oddCount, firstOdd]
+    split <;> split <;> omega
+  refine ⟨hc, ?_⟩
+  simp only [oddPowers, List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range hc,
+    Option.map_some, Option.getD_some, firstOdd]
+  split <;> omega
 
 /-- This party's share of `H^(k−1)` for an odd `k ≥ 3`: the square of its share of `H^((k−1)/2)`
 (index `(k−1)/2 − 1`). The left input of the engines' product for power `k`. -/
@@ -100,6 +119,18 @@ def left (base : List W) (k : Nat) : W := square (base.getD ((k - 1) / 2 - 1) 0)
 
 /-- The left inputs of a round, in the order of `oddPowers`. -/
 def lefts (base : List W) (t : Nat) : List W := (oddPowers base.length t).map (left base)
+
+theorem length_lefts (base : List W) (t : Nat) : (lefts base t).length = oddCount base.length t := by
+  simp [lefts, length_oddPowers]
+
+theorem lefts_getD (base : List W) (t i : Nat) (hi : i < t - base.length)
+    (ho : (base.length + 1 + i) % 2 = 1) :
+    (lefts base t).getD (i / 2) 0 = left base (base.length + 1 + i) := by
+  obtain ⟨hc, he⟩ := oddPowers_getD base.length t i hi ho
+  have hl : i / 2 < (oddPowers base.length t).length := by rw [length_oddPowers]; exact hc
+  simp only [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hl, Option.getD_some] at he
+  simp only [lefts, List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_eq_getElem hl,
+    Option.map_some, Option.getD_some, he]
 
 /-- **One round of the schedule**: shares of `H¹ … Hᵐ` (`m = base.length`) extended to `H¹ … Hᵗ`.
 Element `i` of the new part is power `k = m + 1 + i`: even `k`, the square of the share of
