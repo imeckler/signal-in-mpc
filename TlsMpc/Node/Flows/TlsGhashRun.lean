@@ -461,4 +461,297 @@ theorem ensure_shared (E : Env) (hE : GhashLoaded E) (K : B8) (hK : K.length = 6
         exact Local.Ghash.toBytes_length w)
       (by rw [List.length_map, hmw])
 
+/-! ## T3 for a round, A honest: B sees one masked value per copy -/
+
+theorem bitsOfByte_byteOfBits (b0 b1 b2 b3 b4 b5 b6 b7 : Bool) :
+    bitsOfByte (byteOfBits b0 b1 b2 b3 b4 b5 b6 b7) = [b0, b1, b2, b3, b4, b5, b6, b7] := by
+  cases b0 <;> cases b1 <;> cases b2 <;> cases b3 <;> cases b4 <;> cases b5 <;> cases b6 <;> cases b7 <;> rfl
+
+/-- Whole bytes of wire bits read back as bytes and again as bits are the same bits. -/
+theorem bitsOf_bytesOf : ∀ (s : Bits), s.length % 8 = 0 → bitsOf (bytesOf s) = s
+  | b0 :: b1 :: b2 :: b3 :: b4 :: b5 :: b6 :: b7 :: rest, h => by
+    simp only [bytesOf, bitsOf_cons, bitsOf_bytesOf rest (by simp at h; omega), bitsOfByte_byteOfBits]
+    rfl
+  | [], _ => rfl
+  | [_], h => by simp at h
+  | [_, _], h => by simp at h
+  | [_, _, _], h => by simp at h
+  | [_, _, _, _], h => by simp at h
+  | [_, _, _, _, _], h => by simp at h
+  | [_, _, _, _, _, _], h => by simp at h
+  | [_, _, _, _, _, _, _], h => by simp at h
+
+/-- **Both parties' inputs, the adversary B's chosen**: A's run either stops there (the adversary
+aborted or gave the wrong width: nothing released) or goes on from the state holding A's bits and
+the adversary's `pb` of the declared width, with the adversary's view unchanged. -/
+theorem viewD_both {α : Type} (E : Env) (adv : Adversary) (oa ob : BoolH) (w : Nat) (once rev : Bool) (slot : Nat)
+    (s : Script α) (σ : Store) (I : Ideal) (vD : List Release) (hl : (σ.bits slot).length = w) :
+    (withAdv E .a adv (seq (.boolInputBoth oa ob w once rev slot) s) σ I vD).viewD = [] ∨
+      ∃ pb : Bits, pb.length = w ∧ (withAdv E .a adv (seq (.boolInputBoth oa ob w once rev slot) s) σ I vD).viewD =
+        (withAdv E .a adv s σ ((I.setBool oa (σ.bits slot)).setBool ob pb) vD).viewD := by
+  simp only [seq, withAdv, fill, hl, if_true, Wire.early, Option.toList_none, List.append_nil]
+  split
+  · exact Or.inl rfl
+  · next part _ =>
+    by_cases hb : part.bits.length = w
+    · have hs : idealStep E .a (.boolInputBoth oa ob w once rev (σ.bits slot)) part I =
+          some ((I.setBool oa (σ.bits slot)).setBool ob part.bits, none, none) := by
+        simp [idealStep, hl, hb]
+      rw [hs]
+      simp only [absorb_none, Option.toList_none, List.append_nil, List.nil_append]
+      exact Or.inr ⟨part.bits, hb, rfl⟩
+    · have hs : idealStep E .a (.boolInputBoth oa ob w once rev (σ.bits slot)) part I = none := by
+        simp [idealStep, hl, hb]
+      rw [hs]
+      exact Or.inl rfl
+
+/-- **Value-level T3 for a round, A honest** (gap F20): against ANY adversary B, B's view of
+`roundScript` is at most ONE release, labelled `ghashMaskedPower`, whose value is, copy by copy,
+`gcm-multiply` on A's left share `j`, a left share `lb_j` and a share of H `rb` that B chose
+(16 bytes each), A's share of H, and A's fresh mask `j`. With `Ghash.multiply_hides` each copy's
+value determines A's mask `j` bijectively, whatever B supplied: B learns nothing about the key
+powers (P-GHASH (d)). -/
+theorem round_disclosure_A (E : Env) (hE : GhashLoaded E) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n c leftSlot rightSlot maskSlot dst : Nat) (hc : 0 < c ∧ c ≤ 1024) (la mw : List W) (ra : W)
+    (hla : la.length = c) (hmw : mw.length = c) (hL : σ.bits leftSlot = bitsOfWs la) (hR : σ.bits rightSlot = bitsOfW ra)
+    (hM : σ.bits maskSlot = bitsOfWs mw) :
+    ∃ (lb : List B8) (rb : B8), (∀ x ∈ lb, x.length = 16) ∧ lb.length = c ∧ rb.length = 16 ∧
+      (withAdv E .a adv (roundScript n c leftSlot rightSlot maskSlot dst) σ I vD).viewD <+:
+        [⟨masked, .bits (bitsOf ((List.range c).map fun j => kernelOut HybridKernel.gcmMultiply
+          (Local.Ghash.toBytes (la.getD j 0) ++ lb.getD j [] ++ Local.Ghash.toBytes ra ++ rb ++
+            Local.Ghash.toBytes (mw.getD j 0))).flatten)⟩] := by
+  -- the continuation after both inputs, for any adversary bits of the right widths
+  have lA : (bitsOfWs la).length = 128 * c := by rw [length_bitsOfWs, hla]
+  have lM : (bitsOfWs mw).length = 128 * c := by rw [length_bitsOfWs, hmw]
+  have key : ∀ pl pr : Bits, pl.length = 128 * c → pr.length = 128 →
+      (withAdv E .a adv (seqs [.boolInput ⟨n + 4⟩ .a (128 * c) true false maskSlot,
+          .concat ⟨n + 5⟩ [⟨n⟩, ⟨n + 1⟩, ⟨n + 2⟩, ⟨n + 3⟩, ⟨n + 4⟩], .pick ⟨n + 6⟩ ⟨n + 5⟩ (layout c),
+          .run ⟨n + 7⟩ multiplyName c ⟨n + 6⟩, .openBoolTo ⟨n + 7⟩ .b masked dst, .freeBool ⟨n + 7⟩] (.done ()))
+        σ ((((I.setBool ⟨n⟩ (σ.bits leftSlot)).setBool ⟨n + 1⟩ pl).setBool ⟨n + 2⟩ (σ.bits rightSlot)).setBool
+          ⟨n + 3⟩ pr) vD).viewD <+:
+        [⟨masked, .bits (bitsOf ((List.range c).map fun j => kernelOut HybridKernel.gcmMultiply
+          (Local.Ghash.toBytes (la.getD j 0) ++ ((List.range c).map fun i => bytesOf ((pl.drop (i * 128)).take 128)).getD j [] ++
+            Local.Ghash.toBytes ra ++ bytesOf pr ++ Local.Ghash.toBytes (mw.getD j 0))).flatten)⟩] := by
+    intro pl pr hpl hpr
+    have hσM : (σ.bits maskSlot).length = 128 * c := by rw [hM, lM]
+    simp only [seqs_cons, seqs_nil]
+    refine viewD_seq_boolInput E .a adv (n + 4) (128 * c) maskSlot true false _ σ _ vD _ hσM ?_
+    rw [hL, hR, hM]
+    have hpick := pick_layout c _ _ _ _ _ lA hpl (length_bitsOfW ra) hpr lM
+    have hblock : ∀ j, j < c →
+        ((bitsOfWs la).drop (j * 128)).take 128 ++ (pl.drop (j * 128)).take 128 ++ bitsOfW ra ++ pr ++
+          ((bitsOfWs mw).drop (j * 128)).take 128 =
+        bitsOf (Local.Ghash.toBytes (la.getD j 0) ++
+          ((List.range c).map fun i => bytesOf ((pl.drop (i * 128)).take 128)).getD j [] ++
+          Local.Ghash.toBytes ra ++ bytesOf pr ++ Local.Ghash.toBytes (mw.getD j 0)) := by
+      intro j hj
+      have hg : ((List.range c).map fun i => bytesOf ((pl.drop (i * 128)).take 128)).getD j [] =
+          bytesOf ((pl.drop (j * 128)).take 128) := by
+        simp [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range hj]
+      rw [bitsOfWs_block _ j (by omega), bitsOfWs_block _ j (by omega), hg]
+      simp only [bitsOfW, bitsOf_append]
+      rw [bitsOf_bytesOf _ (by simp; omega), bitsOf_bytesOf _ (by omega)]
+    have hwidth : ∀ j, j < c →
+        (((bitsOfWs la).drop (j * 128)).take 128 ++ (pl.drop (j * 128)).take 128 ++ bitsOfW ra ++ pr ++
+          ((bitsOfWs mw).drop (j * 128)).take 128).length = (circuitOf HybridKernel.gcmMultiply).inWidth := by
+      intro j hj
+      rw [multiply_inWidth]
+      simp only [List.length_append, List.length_take, List.length_drop, lA, lM, hpl, hpr, length_bitsOfW]
+      omega
+    have hR' : runCopies (circuitOf HybridKernel.gcmMultiply) c ((List.range c).flatMap fun j =>
+        ((bitsOfWs la).drop (j * 128)).take 128 ++ (pl.drop (j * 128)).take 128 ++ bitsOfW ra ++ pr ++
+          ((bitsOfWs mw).drop (j * 128)).take 128) =
+        bitsOf ((List.range c).map fun j => kernelOut HybridKernel.gcmMultiply
+          (Local.Ghash.toBytes (la.getD j 0) ++
+            ((List.range c).map fun i => bytesOf ((pl.drop (i * 128)).take 128)).getD j [] ++
+            Local.Ghash.toBytes ra ++ bytesOf pr ++ Local.Ghash.toBytes (mw.getD j 0))).flatten := by
+      refine (runCopies_blocks _ c _ hwidth).trans ?_
+      simp only [bitsOf_flatten, List.map_map]
+      apply congrArg List.flatten
+      apply List.map_congr_left
+      intro j hj
+      rw [List.mem_range] at hj
+      simp only [Function.comp]
+      rw [hblock j hj, Tls.circuitOf_eval]
+    have hlen := flatMap_length c _ _ hwidth
+    -- the plain block: concat, pick, run
+    rw [show seq (InstrP.concat ⟨n + 5⟩ [⟨n⟩, ⟨n + 1⟩, ⟨n + 2⟩, ⟨n + 3⟩, ⟨n + 4⟩])
+        (seq (InstrP.pick ⟨n + 6⟩ ⟨n + 5⟩ (layout c)) (seq (InstrP.run ⟨n + 7⟩ multiplyName c ⟨n + 6⟩)
+          (seq (InstrP.openBoolTo ⟨n + 7⟩ .b masked dst) (seq (InstrP.freeBool ⟨n + 7⟩) (Script.done ()))))) =
+      seqs [InstrP.concat ⟨n + 5⟩ [⟨n⟩, ⟨n + 1⟩, ⟨n + 2⟩, ⟨n + 3⟩, ⟨n + 4⟩], InstrP.pick ⟨n + 6⟩ ⟨n + 5⟩ (layout c),
+          InstrP.run ⟨n + 7⟩ multiplyName c ⟨n + 6⟩]
+        (seq (InstrP.openBoolTo ⟨n + 7⟩ Party.a.other masked dst) (seq (InstrP.freeBool ⟨n + 7⟩) (Script.done ())))
+      from rfl]
+    refine viewD_locals E .a adv _ σ _ _ (by simp [isLocal]) _ vD (fun I' hI' => ?_)
+    rw [runLocal_step E _ _ _ _ (localStep_concat5 E ⟨n + 5⟩ ⟨n⟩ ⟨n + 1⟩ ⟨n + 2⟩ ⟨n + 3⟩ ⟨n + 4⟩ _ _ _ _ _ _ _
+        (by ival_tac) (by ival_tac) (by ival_tac) (by ival_tac) (by ival_tac) rfl),
+      runLocal_step E _ _ _ _ (localStep_pick E ⟨n + 6⟩ ⟨n + 5⟩ (layout c) _ _ _ (by ival_tac)
+        (by
+          rw [List.all_eq_true]
+          intro j hj
+          have := layout_bound c j hj
+          simp only [List.length_append, lA, lM, hpl, hpr, length_bitsOfW, decide_eq_true_eq]
+          omega)
+        hpick),
+      runLocal_step E _ _ _ _ (localStep_run_eq E ⟨n + 7⟩ _ c ⟨n + 6⟩ _ _ _ _ hE.multiply (by ival_tac) hlen hR'),
+      runLocal_nil, Option.some.injEq] at hI'
+    subst hI'
+    refine viewD_seq_openBoolTo E .a adv _ masked dst _ σ _ vD [] _ (by ival_tac) ?_
+    exact silent_prefix E .a adv _ (Silent.seq rfl (Silent.done _)) _ _ _ _
+  have hbl : ∀ s : Bits, s.length = 128 → (bytesOf s).length = 16 := by
+    intro s hs
+    have h := congrArg List.length (bitsOf_bytesOf s (by omega))
+    rw [length_bitsOf, hs] at h
+    omega
+  have dflt : (∀ x ∈ List.replicate c (List.replicate 16 (0 : BitVec 8)), x.length = 16) ∧
+      (List.replicate c (List.replicate 16 (0 : BitVec 8))).length = c ∧ (List.replicate 16 (0 : BitVec 8)).length = 16 := by
+    refine ⟨fun x hx => ?_, by simp, by simp⟩
+    rw [(List.mem_replicate.mp hx).2, List.length_replicate]
+  unfold roundScript
+  rw [if_pos hc]
+  unfold roundBlock
+  rw [seqs_cons, seqs_cons]
+  rcases viewD_both E adv ⟨n⟩ ⟨n + 1⟩ (128 * c) true false leftSlot _ σ I vD (by rw [hL, lA]) with h1 | ⟨pl, hpl, h1⟩
+  · exact ⟨_, _, dflt.1, dflt.2.1, dflt.2.2, by rw [h1]; exact List.nil_prefix⟩
+  rcases viewD_both E adv ⟨n + 2⟩ ⟨n + 3⟩ 128 true false rightSlot _ σ _ vD (by rw [hR, length_bitsOfW])
+    with h2 | ⟨pr, hpr, h2⟩
+  · exact ⟨_, _, dflt.1, dflt.2.1, dflt.2.2, by rw [h1, h2]; exact List.nil_prefix⟩
+  refine ⟨(List.range c).map (fun i => bytesOf ((pl.drop (i * 128)).take 128)), bytesOf pr, fun x hx => ?_,
+    by simp, hbl pr hpr, ?_⟩
+  · simp only [List.mem_map, List.mem_range] at hx
+    obtain ⟨i, hi, rfl⟩ := hx
+    exact hbl _ (by simp; omega)
+  · rw [h1, h2]
+    exact key pl pr hpl hpr
+
+/-! ## P-GHASH (e) for the scripts: a deviating half -/
+
+theorem xor_cancel_bytes : ∀ (X Y Z : B8), X.length = Y.length → X.length = Z.length →
+    Aes.addRoundKey Gcm.concrete.aes X Y = Aes.addRoundKey Gcm.concrete.aes X Z → Y = Z
+  | [], [], [], _, _, _ => rfl
+  | [], _ :: _, _, h, _, _ => by simp at h
+  | [], [], _ :: _, _, h, _ => by simp at h
+  | _ :: _, [], _, h, _, _ => by simp at h
+  | _ :: _, _ :: _, [], _, h, _ => by simp at h
+  | x :: X, y :: Y, z :: Z, h1, h2, h => by
+    simp only [Aes.addRoundKey, List.zipWith_cons_cons, List.cons.injEq] at h
+    simp only [List.length_cons, Nat.add_right_cancel_iff] at h1 h2
+    have hyz : y = z := by
+      have e := congrArg (x ^^^ ·) h.1
+      change x ^^^ (x ^^^ y) = x ^^^ (x ^^^ z) at e
+      rwa [← BitVec.xor_assoc, ← BitVec.xor_assoc, BitVec.xor_self, BitVec.zero_xor, BitVec.zero_xor] at e
+    rw [hyz, xor_cancel_bytes X Y Z h1 h2 h.2]
+
+theorem toBytes_xor_ne (x δ : W) (hδ : δ ≠ 0) : Local.Ghash.toBytes (x ^^^ δ) ≠ Local.Ghash.toBytes x := by
+  intro h
+  have e := congrArg Local.Ghash.ofBytes h
+  rw [Local.Ghash.ofBytes_toBytes, Local.Ghash.ofBytes_toBytes] at e
+  apply hδ
+  have e2 := congrArg (x ^^^ ·) e
+  change x ^^^ (x ^^^ δ) = x ^^^ x at e2
+  rwa [← BitVec.xor_assoc, BitVec.xor_self, BitVec.zero_xor] at e2
+
+/-- `gcm-tag` on pad ‖ half ‖ half (16 bytes each) is their XOR. -/
+theorem tag_out (P A B : B8) (hp : P.length = 16) (ha : A.length = 16) (hb : B.length = 16) :
+    kernelOut HybridKernel.gcmTag (P ++ (A ++ B)) =
+      Aes.addRoundKey Gcm.concrete.aes (Aes.addRoundKey Gcm.concrete.aes P A) B := by
+  obtain ⟨o, ho⟩ := Tls.tag_outputs
+  have hk := outputs_one _ o ho (P ++ (A ++ B))
+  rw [HybridKernel.gcmTag_spec] at hk
+  simp only [List.cons.injEq, and_true] at hk
+  rw [← hk, inputValue_assignOf _ 0 16 (by simp; omega), inputValue_assignOf _ 16 16 (by simp; omega),
+    inputValue_assignOf _ 32 16 (by simp; omega), List.drop_zero, List.take_left' hp, List.drop_left' hp,
+    List.take_left' ha, ← List.append_assoc, List.drop_left' (by simp; omega), List.take_of_length_le (by omega)]
+
+/-- **P-GHASH (e), the seal** (`tagScript`): if one party's half deviates from its honest value by a
+nonzero `δ`, the tag the script opens is not the honest one; with `seal_is_record`, the record the
+parties produce is then NOT `TlsRecord.sealCore` (`seal_deviation_rejected`), so the server rejects
+it. -/
+theorem tag_deviation (P : B8) (hp : P.length = 16) (xa xb δ : W) (hδ : δ ≠ 0) :
+    kernelOut HybridKernel.gcmTag (P ++ (Local.Ghash.toBytes xa ++ Local.Ghash.toBytes (xb ^^^ δ))) ≠
+      kernelOut HybridKernel.gcmTag (P ++ (Local.Ghash.toBytes xa ++ Local.Ghash.toBytes xb)) := by
+  rw [tag_out _ _ _ hp (Local.Ghash.toBytes_length _) (Local.Ghash.toBytes_length _),
+    tag_out _ _ _ hp (Local.Ghash.toBytes_length _) (Local.Ghash.toBytes_length _)]
+  intro h
+  refine toBytes_xor_ne xb δ hδ (xor_cancel_bytes _ _ _ ?_ ?_ h)
+  · simp [Aes.addRoundKey, hp, Local.Ghash.toBytes_length]
+  · simp [Aes.addRoundKey, hp, Local.Ghash.toBytes_length]
+
+theorem seal_deviation_rejected (kind size padding : Nat) (K seqB C : B8) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hC : C.length = size) (a b : List W) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) (δ : W) (hδ : δ ≠ 0) :
+    let out := kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))
+    let hc := out.take (5 + Tls.innerLength size padding)
+    let pad := (out.drop (5 + Tls.innerLength size padding)).take 16
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5)) ++
+        Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5) ^^^ δ))) ≠
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding := by
+  have hrec := Tls.seal_is_record kind size padding K seqB C hK hs hC a b nPow hsh hn
+  dsimp only at hrec ⊢
+  have hpl : (((kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))).drop
+      (5 + Tls.innerLength size padding)).take 16).length = 16 := by
+    obtain ⟨hout, -⟩ := Tls.sealCtr_kernelOut kind size padding K seqB C hK hs hC
+    have hH := Tls.header_length (Tls.innerLength size padding + 16)
+    have hCT : (HybridKernel.ctrOf K seqB (TlsRecord.inner Gcm.concrete C kind padding)).length =
+        Tls.innerLength size padding := by
+      rw [HybridKernel.ctrOf_length _ _ _ hK, Tls.inner_length, hC]
+    rw [hout]
+    simp only [List.length_take, List.length_drop, List.length_append, hH, hCT, Tls.padOf_length K seqB hK]
+    omega
+  intro h
+  rw [← hrec] at h
+  exact tag_deviation _ hpl _ _ δ hδ (List.append_cancel_left h)
+
+/-- `gcm-check` on traffic ‖ sequence ‖ half ‖ half ‖ tag (60, 8, 16, 16, 16 bytes). -/
+theorem check_out (K seqB xa xb tag : B8) (hK : K.length = 60) (hs : seqB.length = 8) (ha : xa.length = 16)
+    (hb : xb.length = 16) (ht : tag.length = 16) :
+    kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (xa ++ (xb ++ tag)))) =
+      [if Aes.addRoundKey Gcm.concrete.aes (Aes.addRoundKey Gcm.concrete.aes (HybridKernel.padOf K seqB) xa) xb = tag
+        then 255 else 0] := by
+  have e1 : HybridKernel.inputValue (assignOf (K ++ (seqB ++ (xa ++ (xb ++ tag))))) 0 60 = K := by
+    rw [inputValue_assignOf _ _ _ (by simp; omega), List.drop_zero, List.take_left' hK]
+  have e2 : HybridKernel.inputValue (assignOf (K ++ (seqB ++ (xa ++ (xb ++ tag))))) 60 8 = seqB := by
+    rw [inputValue_assignOf _ _ _ (by simp; omega), List.drop_left' hK, List.take_left' hs]
+  have e3 : HybridKernel.inputValue (assignOf (K ++ (seqB ++ (xa ++ (xb ++ tag))))) 68 16 = xa := by
+    rw [inputValue_assignOf _ _ _ (by simp; omega), ← List.append_assoc, List.drop_left' (by simp; omega),
+      List.take_left' ha]
+  have e4 : HybridKernel.inputValue (assignOf (K ++ (seqB ++ (xa ++ (xb ++ tag))))) 84 16 = xb := by
+    rw [inputValue_assignOf _ _ _ (by simp; omega),
+      show K ++ (seqB ++ (xa ++ (xb ++ tag))) = (K ++ seqB ++ xa) ++ (xb ++ tag) by simp,
+      List.drop_left' (by simp; omega), List.take_left' hb]
+  have e5 : HybridKernel.inputValue (assignOf (K ++ (seqB ++ (xa ++ (xb ++ tag))))) 100 16 = tag := by
+    rw [inputValue_assignOf _ _ _ (by simp; omega),
+      show K ++ (seqB ++ (xa ++ (xb ++ tag))) = (K ++ seqB ++ xa ++ xb) ++ tag by simp,
+      List.drop_left' (by simp; omega), List.take_of_length_le (by omega)]
+  obtain ⟨o, ho⟩ : ∃ o, HybridKernel.gcmCheck.outputs = [o] := ⟨_, rfl⟩
+  have hk := outputs_one _ o ho (K ++ (seqB ++ (xa ++ (xb ++ tag))))
+  rw [HybridKernel.gcmCheck_spec, e1, e2, e3, e4, e5] at hk
+  simp only [List.cons.injEq, and_true] at hk
+  rw [← hk]
+
+/-- **P-GHASH (e), the open** (`openScript`'s tag check): with honest halves of shared key powers
+except that one half deviates by a nonzero `δ`, the GENUINE tag (GCM's tag of the record) is
+refused: the acceptance byte bound to `tls-open-typed` is 0, so the typed open releases only the
+rejection (`open_rejected`). -/
+theorem check_deviation (K seqB hdr ct : B8) (hK : K.length = 60) (hs : seqB.length = 8) (a b : List W) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow)
+    (δ : W) (hδ : δ ≠ 0) :
+    kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes (Local.Ghash.half a hdr ct) ++
+        (Local.Ghash.toBytes (Local.Ghash.half b hdr ct ^^^ δ) ++
+          Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB))))) = [0] := by
+  have hpad := Tls.padOf_length K seqB hK
+  have hg : (Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB)).length = 16 := by
+    rw [← Local.Ghash.halves_xor K hdr ct a b nPow hsh hn]
+    simp [Aes.addRoundKey, Local.Ghash.toBytes_length, hpad]
+  rw [check_out _ _ _ _ _ hK hs (Local.Ghash.toBytes_length _) (Local.Ghash.toBytes_length _) hg, if_neg]
+  intro h
+  rw [← Local.Ghash.halves_xor K hdr ct a b nPow hsh hn,
+    ← HybridKernel.xor_rotate (HybridKernel.padOf K seqB) (Local.Ghash.toBytes (Local.Ghash.half a hdr ct))
+      (Local.Ghash.toBytes (Local.Ghash.half b hdr ct))] at h
+  refine toBytes_xor_ne (Local.Ghash.half b hdr ct) δ hδ (xor_cancel_bytes
+    (Aes.addRoundKey Gcm.concrete.aes (HybridKernel.padOf K seqB) (Local.Ghash.toBytes (Local.Ghash.half a hdr ct)))
+    (Local.Ghash.toBytes (Local.Ghash.half b hdr ct ^^^ δ)) (Local.Ghash.toBytes (Local.Ghash.half b hdr ct)) ?_ ?_ h)
+  · simp [Aes.addRoundKey, hpad, Local.Ghash.toBytes_length]
+  · simp [Aes.addRoundKey, hpad, Local.Ghash.toBytes_length]
+
 end TlsMpc.Node.Flows.Ghash
