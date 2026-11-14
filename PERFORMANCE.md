@@ -778,3 +778,43 @@ both paths.
 Revealing server bytes in multi-byte steps (261 calls → 118 per send session) and byte
 operations that no longer go through arbitrary-precision arithmetic (`PublicReceive.fast_eq`)
 took the time outside the workers from 24.5 s to about 6–8 s per send session.
+
+
+### The script path's cost, third round (2026-11-13): public text and machine words
+
+Task 1 (`bc5204e`) builds public text notifications directly in `Session.Send.notify` and
+`restamp`, with `buildPublicFast_eq` and `buildPublicOfficialFast_eq` proving equality to the
+original specifications. Task 2 (`f6d7b02`) wires `Local.Hash.hashFast` into `Runner.start` and
+`encodeBatchWord` into `Runner.batch`. `hashFast_eq` proves equality to `TlsWire.hash` for every
+input; `encodeBatchWord_eq` proves the exact encoded byte list for every batch, including the
+fallback for numbers at least 2^64. The hash uses UInt8/UInt32 operations and the encoder extracts
+eight bytes from a UInt64. No script, instruction, opening, batch order or randomness changes.
+The new Node modules stay outside every emitter's import closure.
+
+After both tasks, three alternating legacy/scripts rounds (`tw1`, `tw2`, `tw3`, plan
+`.deps/lowering-scratch/pr_plan_word.txt`, same strict closed selection and stages as the second
+round above) all passed on their first attempt. Seconds per message, mean (spread, sample sd):
+
+| stage, mode | legacy | scripts | scripts minus legacy |
+|---|---|---|---|
+| repeat, semi-honest | 0.3567 (0.0125, 0.0063) | 0.3717 (0.0025, 0.0014) | +15.0 ms |
+| repeat, malicious | 0.9842 (0.0050, 0.0029) | 1.0058 (0.0050, 0.0029) | +21.6 ms |
+| restart, semi-honest | 0.6115 (0.0031, 0.0018) | 0.6386 (0.0094, 0.0048) | +27.1 ms |
+| restart, malicious | 1.8448 (0.0156, 0.0090) | 1.8958 (0.0218, 0.0126) | +51.0 ms |
+
+The task-1-only valid rounds (`t1`, `t3`) measured scripts repeat semi-honest at 0.3800
+and restart semi-honest at 0.6484 s/message; this series is about 8–10 ms lower. Those older
+runs had only two samples and differing legacy timings, so this is not a controlled estimate of
+Task 2 alone. The large improvement shared by both paths comes from Task 1's public text builder.
+The new three-run results still show a scripts overhead; parity has not been established.
+Raw stage logs are `out/pq-h-tw*-*.log`; reproduce the summary with
+`python3 .deps/lowering-scratch/pq_summary.py tw1 tw2 tw3`.
+
+Validation after wiring Task 2: `pq_checks.py` passed all three Lean targets (`TlsMpc`,
+`TlsMpcSecurity`, `public_service_controller`), recovery 29/29, policy 14/14, six parse comparisons,
+node lint (zero findings), allowed-axiom audit, RunnerTest (37 checks), all four worker build
+variants and Cargo tests. The equality theorem audits use only standard Lean axioms
+(hash: propext, Quot.sound; encoder: propext, Classical.choice, Quot.sound).
+The array permutation probe was deliberately left unapplied: the profile attributes its cost to
+SHA-256 expansion, now covered by `hashFast`. Curve arithmetic and trailing no-reply batch merging
+remain separate future work.
