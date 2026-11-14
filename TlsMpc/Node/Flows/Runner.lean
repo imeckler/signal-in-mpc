@@ -1,4 +1,6 @@
 import Std.Data.HashMap
+import TlsMpc.Node.Local.Hash
+import TlsMpc.Node.Engine.EncodeWord
 import TlsMpc.Node.Flows.Legacy
 import TlsMpc.Node.Flows.JoinBackend
 import TlsMpc.Node.Flows.ReceiveBackend
@@ -567,23 +569,24 @@ def get {α : Type} (r : IO.Ref α) : M α := (r.get : IO α)
 def set {α : Type} (r : IO.Ref α) (a : α) : M Unit := (r.set a : IO Unit)
 
 /-- A runner for this party (`me`), from its flow context; the state starts empty (the counters at
-0, no mask pool: `Masks.generate` fills it, stage S10). -/
+0, no mask pool: `Masks.generate` fills it, stage S10). Uses machine-word SHA-256,
+proved equal to `TlsWire.hash` by `Local.Hash.hashFast_eq`. -/
 def start (w : Flow.Worker) (me : Party) (loaded : Bytes → Bool) (programMasks : Bytes → Option Nat)
     (base : Store := {}) (first : Nat := 1) : IO Runner := do
-  return { me, hash := TlsMpc.TlsWire.hash, worker := { w with connection := none }, state := ← IO.mkRef {},
+  return { me, hash := TlsMpc.Node.Local.Hash.hashFast, worker := { w with connection := none }, state := ← IO.mkRef {},
            slots := ← IO.mkRef {}, next := ← IO.mkRef first, random := w.random, loaded, programMasks, base,
            pending := ← IO.mkRef [] }
 
 /-- One batch on the pipe (op 93): the pending frees (`pending`) and then `ws`, encoded, out; the
 reply items in (as many as `itemCount`; the frees give none, `itemCount_append_frees`). The bytes are
-`encodeBatch` / `decodeReplies` of them, computed by `encodeBatchArray` / `decodeRepliesFast`
-(`encodeBatchArray_eq`: the array holds exactly `encodeBatch all`, sent by `Rpc.callArray`, which
+`encodeBatch` / `decodeReplies` of them, computed by `encodeBatchWord` / `decodeRepliesFast`
+(`encodeBatchWord_eq`: the array holds exactly `encodeBatch all`, sent by `Rpc.callArray`, which
 writes those bytes; `decodeRepliesFast_eq`). -/
 def batch (r : Runner) (ws : List Wire) : M (List Datum) := do
   let fs ← get r.pending
   set r.pending []
   let all := fs ++ ws
-  let reply ← Flow.Legacy.callArray r.worker .batch (encodeBatchArray all)
+  let reply ← Flow.Legacy.callArray r.worker .batch (encodeBatchWord all)
   let some items := decodeRepliesFast reply | throw "undecodable batch reply"
   insist (items.length == itemCount r.me all) "batch reply count"
   return items
