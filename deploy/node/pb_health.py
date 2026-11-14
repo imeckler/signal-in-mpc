@@ -5,6 +5,7 @@
     pb_health.py page CONFIG       the monitoring page on localhost:8088 (and every address if page_public)
     pb_health.py verdict FILE MODE DATA   judge a pre-flight output (MODE strict | relaxed | pair-strict | pair-relaxed)
     pb_health.py logs LINES OUTDIR       redacted logs of this node's services
+    pb_health.py db-ready NETWORK TIMEOUT  wait for a database quorum before the account ceremony
 
 What the endpoints expose (public by design, nothing secret, no contact data): node name and role,
 container and unit states, image digests, the circuit / word / settings digests and the pre-flight
@@ -446,6 +447,41 @@ def verdict(path, mode, data_root):
     print(json.dumps(out))
 
 
+def db_ready(network_path, timeout):
+    """Wait for a reachable quorum that has applied an epoch, before storing the account.
+
+    `start` returns while the database start barrier is still waiting for other operators.
+    An open port alone does not establish that those nodes have reached consensus.
+    """
+    network = json.loads(Path(network_path).read_text())
+    addresses = network['compute_addresses']
+    required = network['threshold'] + network['max_malicious_parties']
+    if not 0 < required <= len(addresses):
+        raise ValueError('invalid database quorum')
+    deadline = time.monotonic() + float(timeout)
+    while time.monotonic() < deadline:
+        ready = 0
+        for address in addresses:
+            host, port = address.rsplit(':', 1)
+            try:
+                with urllib.request.urlopen(f'http://{host}:{HEALTH_PORT}/health', timeout=4) as response:
+                    health = json.loads(response.read())
+                epoch = (health.get('database') or {}).get('last_epoch')
+                running = (health.get('containers') or {}).get('ssdb-node', {}).get('state') == 'running'
+                if health.get('database_waiting') or not running or epoch is None:
+                    continue
+                with socket.create_connection((host, int(port)), timeout=2):
+                    ready += 1
+            except (OSError, ValueError):
+                pass
+        print(f'db-ready: {ready}/{len(addresses)} nodes ready; need {required}', flush=True)
+        if ready >= required:
+            return 0
+        time.sleep(3)
+    print('db-ready: timed out waiting for database consensus; run start on the remaining nodes, then retry the account step', flush=True)
+    return 1
+
+
 def db_barrier(config_path, timeout):
     """ExecStartPre of a database node: wait until every other database node is either waiting
     here too or already running, then start at the next 30-second boundary of the clock. The
@@ -512,6 +548,8 @@ def main():
         logs(int(sys.argv[2]), sys.argv[3])
     elif command == 'db-barrier':
         return db_barrier(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else 1800)
+    elif command == 'db-ready':
+        return db_ready(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else 600)
     else:
         print(__doc__)
         return 2

@@ -80,22 +80,23 @@ directories exchanged only bundle files.
 
 | Part | State |
 |---|---|
-| Configuration validation (both files) | tested here: 18 unit checks, `python3 deploy/pushbutton/test_pushbutton.py` |
+| Configuration validation, bundles, account readiness and command flow | tested here: 28 unit checks, `python3 -m unittest discover -s deploy/pushbutton -p 'test_*.py'` |
 | Bundles, fingerprint, consistency checks | tested here: the three operators computed the same fingerprint; a swapped WireGuard key gave a different one and `start` refused it |
 | `join` on `local` (= the `existing` path: Docker, WireGuard, firewall, data disk, images by digest, circuits and word files copied and checked, keys made on each node) | tested here, 7 machines |
 | `start`: WireGuard full mesh, per-sender firewall, database nodes (Postgres + server), daemons' configuration, monitoring page, certificate timer, pre-flight, two-node comparison | tested here: kernel WireGuard inside the machine containers, every handshake up; the comparison reported EQUAL |
-| Account step (`account local-test`, `account install` by both computation operators at once) | tested here against the LOCAL Signal server |
-| One signup and one 200-byte send | tested here, **intermittent**: in 1 of 3 full runs a signup reached both daemons and a 200-byte text was delivered, agreed and decrypted by the new user from a sealed envelope; in the others every receive session failed at once. Cause found: the database nodes, started minutes apart by different operators, never connected (Reference 10, change 19). The start barrier that fixes it is written and lint-clean but **its end-to-end run was stopped before the send (untested)** |
+| Account step (`account local-test`, `account install` by both computation operators at once) | tested here against the LOCAL Signal server; waits for a reachable quorum that has applied an epoch before launching the store ceremony (fixes the race with the asynchronous database start barrier) |
+| One signup and one 200-byte send | tested here: all three sends passed in one complete malicious multi-operator run (initial deployment, after same-version upgrade, after replacing one operator's machines with kept disks). Each included a new signup, delivery and sealed-envelope decryption. All five databases applied epochs; after replacement all five reached the same new epoch. Earlier failures led to the database start barrier and account-readiness fixes. Evidence: deploy/LOCAL_TEST_RESULTS.md |
 | `status`, the page (through `monitor`'s ssh tunnel), `logs` | tested here; the page was checked for secrets |
-| `upgrade` keeps the database; `destroy` then `join`/`start` restores keys and data from the kept disks | tested here: the database tables survive `upgrade`; after `destroy` + `join` the same keys came back (identical fingerprint) and the tables were restored from the kept volume |
+| `upgrade` keeps the database; `destroy` then `join`/`start` restores keys and data from the kept disks | tested here with the same software version: all eight tables survived `upgrade`; after replacing Alice's computation node and two databases, keys/fingerprint and tables were restored, epochs resumed, and signup/send/decryption passed |
 | Certificate timer | tested here as far as it goes: it reads the expiry and, inside the margin, calls the entry point, which only records "refresh due" (the refresh job does not exist: Reference 10, change 15) |
 | `existing` on a real remote machine | never run (the local containers stand in; same code) |
 | OpenTofu modules `hetzner`, `upcloud`, `ovh` | validated offline: `tofu init` + `tofu validate` pass for both stacks of each; `tofu plan` with dummy credentials plans for hetzner and ovh; upcloud's plugin refuses to plan without valid credentials (one refused login to its API). Never applied: written, validated offline, never run against the provider |
 | Ansible | `--syntax-check` passes for all 7 playbooks; ansible-lint passes (one line-length fix) |
 | x86-64 images (`build --platform linux/amd64`) | never built (the tested images are arm64, built earlier) |
 | `endpoint = "production"` | written, reviewed by reading, never executed |
-| `up` (one person, every node) | written, never run (it chains the tested join/collect/start) |
-| semi-honest mode, `worker_logic = "lean"` | written, never run (they select the image / environment only) |
+| `up` (one person, every node) | tested here: `up --with-account` returned 0 in both malicious and semi-honest mode; both daemons healthy, pair EQUAL, all five databases applying epochs, signup/send/decryption passed |
+| semi-honest mode | tested here with legacy worker logic: single-operator `up --with-account`, signup/send/decryption, status, certificate checks and logs |
+| `worker_logic = "lean"` | written, never run through the push-button path |
 | `build` (images for another platform) | written, never run (`build --record` of existing images was run) |
 
 ---
@@ -944,8 +945,11 @@ Not made here (another engineer is working in these files); each is small.
     failed while loading the account ("operation 8 local abort"). Proposed: reconnect to peers
     with back-off. Worked around in the tooling: each database node's start waits (up to 30
     minutes) until every other database node is waiting or running, then all start at the same
-    30-second boundary (`pb_health.py db-barrier`). A node restarted alone later (reboot,
-    upgrade) still depends on whether its peers reconnect to it: not tested.
+    30-second boundary (`pb_health.py db-barrier`). Replacing one operator's two database nodes
+    while the other three stayed running was tested: all five resumed a common new epoch and
+    a signup/send/decryption passed. This does not establish every reboot or partition-recovery
+    case. The account step also waits for a reachable quorum with an applied epoch before
+    launching the store ceremony; otherwise it could race this asynchronous barrier.
 
 Which of these the push-button path depends on: 19 (database peers reconnecting; worked around
 for a coordinated start only), 15 (certificate refresh: the timer only alerts until it exists)

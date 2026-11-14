@@ -1,46 +1,92 @@
 # Hand-over: the push-button deploy tool (2026-11-13)
 
-Stopped early (out of credits). DEPLOYMENT.md "Status of the push-button tool" is the
-authoritative table; this is the short version.
+Resumed and completed the previous handover's three next steps: the full local multi-operator
+run, single-operator `up`, semi-honest mode, and a commit of the tested fixes and evidence.
+DEPLOYMENT.md's status table remains authoritative. See LOCAL_TEST_RESULTS.md for evidence.
 
-## Done and tested here (local provider: containers standing in for ssh machines)
-- Config validation of deployment.toml / operator.toml: `python3 deploy/pushbutton/test_pushbutton.py` (18 checks).
-- Multi-operator flow with 3 simulated operators, separate state dirs, only bundle files exchanged:
-  join (Docker, WireGuard, ufw, data disk, images by digest, circuits + word files checked, keys made
-  on the nodes), collect (same fingerprint for all three), tampered bundle -> different fingerprint
-  and `start` refuses, start (WireGuard mesh, per-sender firewall, Postgres + db server, daemon
-  config, health endpoints, monitoring page, certificate timer, preflight, two-node comparison EQUAL),
-  account local-test + account install by both MPC operators, status/monitor/logs, upgrade keeps
-  db tables, destroy + join restores keys (same fingerprint) and db data.
-- Signup + 200-byte send: passed once (run 2, after a restart); failed in other runs (below).
-- OpenTofu modules hetzner/upcloud/ovh: init + validate pass offline; never applied.
-- Ansible: syntax-check of 7 playbooks and ansible-lint (production profile) pass.
+## Completed this session
 
-## Written but untested
-- The database start barrier (`pb_health.py db-barrier`, ssdb-node.service ExecStartPre): the fix for
-  the db nodes never connecting when started minutes apart (DEPLOYMENT.md Reference 10, change 19).
-  Its run was stopped right after start(carol).
-- `up`, `build` for linux/amd64, semi-honest / lean, `existing` against a real remote machine, every
-  cloud apply, `endpoint = "production"` (reviewed by reading only).
+- Malicious, three simulated operators, separate private files and state directories, only
+  public bundles exchanged: **61 checks, zero failures**. All three signup + 200-byte sends
+  passed (initial deployment, after same-version upgrade, after replacing Alice's machines
+  while keeping data disks). Every send report confirms delivery and sealed-envelope decryption.
+- All five database nodes applied epochs. After replacing Alice's two database nodes while the
+  other three stayed running, all five applied the same new epoch (89730784 was checked directly).
+- Both single-operator `up --with-account` runs passed, including signup/send/decryption:
+  malicious **16 checks**, semi-honest **18 checks**, zero failures in either. Legacy worker logic.
+- **28 unit tests pass**: configuration, bundles, account readiness, command results and timeout
+  coverage. Account playbook syntax-check and production-profile ansible-lint pass.
 
-## Not started
-- The joint sender-certificate refresh (change 15, P-CERT): the timer only records "refresh due".
-- Field-engine certificate (30-day) renewal; reproducible builds.
+## Fixes made
 
-## Next steps, in order
-1. Rerun the local end-to-end under the heavy lock (it pauses the test machines at the end):
-   `python3 scripts/guarded.py --heavy 8 5000 python3 .deps/lowering-scratch/pb_e2e.py resume,teardown,setup,join,exchange,collect,tamper,start,account,send,cert,status,upgrade,send2,destroy-up,send3,quiesce,pause`
-   Check in pb_e2e/results.jsonl that the db nodes apply epochs (status shows "epoch N", not None)
-   and that all three sends pass. If not, look at `docker logs ssdb-node` on a db machine
-   ("Client N not connected").
-2. Then `up` with one operator file (all nodes local), then semi-honest.
-3. Commit the then-tested state; update the status table.
+1. The database start barrier worked, but `start` returns before it finishes. Account installation
+   raced it and both store ceremonies failed with database connection refused. The account
+   playbook now waits for threshold + max_malicious reachable database nodes that are running,
+   are no longer at the barrier, and have applied an epoch. A timeout fails before the ceremony
+   and explains how to retry. Its duration and the outer Ansible timeout include epoch settling.
+2. `up --with-account` used to retain an earlier waiting-status exit code even after successful
+   account installation. It now returns the account step's result, matching the standalone
+   account command (daemon startup remains asynchronous).
+3. The ignored test harness now checks database epoch evidence before sends and uses unique
+   per-run account staging directories. One retry had an unavailable account bind mount after
+   reusing a deleted/recreated path; a fresh container could read it. This was not established
+   as a deployment-tool defect.
 
-## Leftover state on this computer
-- 8 PAUSED containers `pb-pbtest-*` (7 machines + application-server), network `pb-pbtest`,
-  volumes `pb-pbtest-*-{data,docker,containerd}` (about 30 GB). Remove all with
-  `python3 .deps/lowering-scratch/pb_e2e.py resume,teardown`.
-- Images: `tls-mpc-deploy-ansible:1`, `tls-mpc-deploy-machine:1`, `ghcr.io/opentofu/opentofu:1.10.6`.
-- deploy/.state/pbtest/ (git-ignored: ssh keys of the test, bundles, logs, image tars ~0.5 GB).
-- Test scripts: .deps/lowering-scratch/pb_*.py, pb_cmds/, pb_e2e/, pb_tofu/.
-- The local Signal server is stopped.
+An initial attempt also exposed an execution-environment issue: the sandbox blocked `ps`, so
+scripts/guarded.py crashed after spawning its child and released the heavy lock. That child was
+stopped, and all reported passing runs used an elevated guard with working `ps` access. Do not
+run this harness if its guard cannot monitor processes; never bypass the heavy lock.
+
+## Evidence and reruns (local files, ignored by Git)
+
+- `.deps/lowering-scratch/pb_results/malicious-multi.jsonl` (61 checks)
+- `.deps/lowering-scratch/pb_results/malicious-single.jsonl` (16 checks)
+- `.deps/lowering-scratch/pb_results/semi-honest-single.jsonl` (18 checks)
+- `.deps/lowering-scratch/pb_e2e.py`: original multi-operator harness, now with epoch checks.
+- `.deps/lowering-scratch/pb_single.py`: single-operator harness; second argument selects mode.
+- State/logs: `deploy/.state/pbtest/`, `deploy/.state/pbsingle/`.
+
+The full multi-operator command (first remove the current single-operator machines, below):
+
+```sh
+python3 scripts/guarded.py --heavy 8 5000 python3 .deps/lowering-scratch/pb_e2e.py resume,teardown,setup,join,exchange,collect,tamper,start,account,send,cert,status,upgrade,send2,destroy-up,send3,quiesce,pause
+```
+
+A single-operator run, once no other local deployment owns the fixed Docker subnet:
+
+```sh
+python3 scripts/guarded.py --heavy 8 3600 python3 .deps/lowering-scratch/pb_single.py resume,teardown,setup,up,send,cert,status,quiesce,pause semi-honest
+```
+
+The original multi-operator script records FAIL rows but can exit 0: inspect results.jsonl.
+The single-operator script exits nonzero if any of its checks failed. Archive results before
+another setup/run, since setup replaces the multi-operator results directory.
+
+## Left on this computer
+
+- **8 paused** `pb-pbsingle-*` containers (7 machines + application server), network `pb-pbsingle`,
+  and data/docker/containerd volumes. The final run is semi-honest.
+- The old `pb-pbtest-*` machines, network and volumes were removed after their successful run.
+  Their state directories and archived results remain.
+- Both computation daemons and the local Signal server were stopped before pausing.
+- Existing deployment/Ansible/machine images and both arm64 computation images remain.
+
+To remove the current test machines and data under the heavy lock:
+
+```sh
+python3 scripts/guarded.py --heavy 8 600 python3 .deps/lowering-scratch/pb_single.py resume,teardown
+```
+
+## Still open / not tested
+
+- P-CERT joint sender-certificate refresh (proposed change 15): timer only records refresh due.
+  The existing ceremony certificate stage is not a safe automated refresh job.
+- Field-engine 30-day certificate renewal (changes 8/18), reproducible builds, prekey
+  replenishment and signed-prekey rotation (PRODUCT_TODO.md section 1).
+- `build` for linux/amd64, lean worker logic through push-button, real remote `existing`, cloud
+  applies and production Signal. OpenTofu's earlier offline validation remains unchanged.
+- General database reconnect/partition-recovery behavior (change 19). Coordinated initial start
+  and replacement of one operator's two databases passed; this is not a proof of every recovery case.
+- Same-version upgrade passed; an upgrade to genuinely different binaries was not exercised.
+- Owner questions remain in DEPLOYMENT.md section 11: builder, provider/`existing` route, alerts,
+  manual certificate refresh responsibility, application-server WireGuard ownership.

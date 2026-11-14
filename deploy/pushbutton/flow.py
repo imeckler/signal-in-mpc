@@ -825,7 +825,10 @@ def cmd_up(args):
     say(f'\n(one operator: the fingerprint {args.fingerprint} needs no comparison)')
     rc = cmd_start(args)
     if ctx.d['signal']['endpoint'] == 'local-test' and getattr(args, 'with_account', False):
-        rc = cmd_account_local(args) or rc
+        # The initial status may still be waiting for the database barrier or the account.
+        # Successful account installation supersedes that status, just as the standalone
+        # account command does (the daemon starts asynchronously).
+        rc = cmd_account_local(args)
     return rc
 
 
@@ -852,8 +855,11 @@ def cmd_account_install(args):
     inventory(ctx, machines, nodes)
     step('the account step: material onto the node(s), the account row on the database nodes, then the daemon')
     ids = {n: json.loads((ctx.outbox / f'{n}.bundle.json').read_text())['software']['image_id'] for n in nodes}
-    play(ctx, 'account.yml', dict(name=ctx.d['name'], image_ids=ids, settle_seconds=3 * ctx.d['database']['epoch_seconds']),
-         nodes, [(str(source), '/in/account')], timeout=1800)
+    settle_seconds = 3 * ctx.d['database']['epoch_seconds']
+    readiness_seconds = max(600, settle_seconds)
+    play(ctx, 'account.yml', dict(name=ctx.d['name'], image_ids=ids, settle_seconds=settle_seconds,
+                                readiness_seconds=readiness_seconds),
+         nodes, [(str(source), '/in/account')], timeout=readiness_seconds + 900 + settle_seconds + 120)
     ctx.save_progress(account=True)
     say('Account installed; the daemon is starting. `deploy.py status` shows when the receive session runs.')
     return 0

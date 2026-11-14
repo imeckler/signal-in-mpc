@@ -9,6 +9,16 @@
     scaffold: "{{ data_root }}/tls-mpc/scaffold"
     ceremony: "{{ data_root }}/tls-mpc/state/daemon/ceremony"
   tasks:
+    - name: Database readiness helper (also update machines joined before this check existed)
+      ansible.builtin.copy:
+        src: /deploy/node/pb_health.py
+        dest: /opt/pb/pb_health.py
+        mode: "0644"
+
+    - name: Wait for the database start barrier and a quorum applying epochs
+      ansible.builtin.command: python3 /opt/pb/pb_health.py db-ready {{ data_root }}/tls-mpc/config/network.json {{ readiness_seconds }}
+      changed_when: false
+
     - name: Account material (scaffolding the sessions still read; DEPLOYMENT.md "Not yet ready")
       ansible.builtin.copy:
         src: /in/account/common/
